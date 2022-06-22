@@ -1,0 +1,101 @@
+{
+  "name": "Basic",
+  "cards": [
+    {
+      "name": "Amy",
+      "avatar": "https://avatars.dicebear.com/api/avataaars/Amy.svg"
+    },
+    {
+      "name": "Anita",
+      "avatar": "https://avatars.dicebear.com/api/avataaars/Anita.svg"
+    },
+    {
+      "name": "Anne",
+      "avatar": "https://avatars.dicebear.com/api/avataaars/Anne.svg"
+    },
+    {
+      "name": "Ben",
+      "avatar": "https://avatars.dicebear.com/api/avataaars/Ben.svg"
+    },
+    {
+      "name": "Bill",
+      "avatar": "https://avatars.dicebear.com/api/avataaars/Bill.svg"
+    },
+    {
+      "name": "Carmen",
+      "avatar": "https://avatars.dicebear.com/api/avataaars/Carmen.svg"
+    },
+    {
+      "name": "Claire",
+      "avatar": "https://avatars.dicebear.com/api/avataaars/Claire.svg"
+    },
+    {
+      "name": "David",
+      "avatar": "https://avatars.dicebear.com/api/avataaars/David.svg"
+    },
+    {
+      "name": "Emma",
+      "avatar": "https://avatars.dicebear.com/api/avataaars/Emma.svg"
+    },
+    {
+      "name": "Eric",
+      "avatar": "https://avatars.dicebear.com/api/avataaars/Eric.svg"
+    },
+    {
+      "name": "Frank",
+      "avatar": "https://avatars.dicebear.com/api/avataaars/Frank.svg"
+    },
+    {
+      "name": "Gabe",
+      "avatar": "https://avatars.dicebear.com/api/avataaars/Gabe.svg"
+    },
+    {
+      "name": "Joe",
+      "avatar": "https://avatars.dicebear.com/api/avataaars/Joe.svg"
+    },
+    {
+      "name": "Laura",
+      "avatar": "https://avatars.dicebear.com/api/avataaars/Laura.svg"
+    },
+    {
+      "name": "Max",
+      "avatar": "https://avatars.dicebear.com/api/avataaars/Max.svg"
+    },
+    {
+      "name": "Mia",
+      "avatar": "https://avatars.dicebear.com/api/avataaars/Mia.svg"
+    },
+    {
+      "name": "Nick",
+      "avatar": "https://avatars.dicebear.com/api/avataaars/Nick.svg"
+    },
+    {
+      "name": "Paul",
+      "avatar": "https://avatars.dicebear.com/api/avataaars/Paul.svg"
+    },
+    {
+      "name": "Philip",
+      "avatar": "https://avatars.dicebear.com/api/avataaars/Philip.svg"
+    },
+    {
+      "name": "Robert",
+      "avatar": "https://avatars.dicebear.com/api/avataaars/Robert.svg"
+    },
+    {
+      "name": "Sally",
+      "avatar": "https://avatars.dicebear.com/api/avataaars/Sally.svg"
+    },
+    {
+      "name": "Sam",
+      "avatar": "https://avatars.dicebear.com/api/avataaars/Sam.svg"
+    },
+    {
+      "name": "Susan",
+      "avatar": "https://avatars.dicebear.com/api/avataaars/Susan.svg"
+    },
+    {
+      "name": "Victor",
+      "avatar": "https://avatars.dicebear.com/api/avataaars/Victor.svg"
+    }
+  ]
+}

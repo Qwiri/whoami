@@ -22,7 +22,7 @@
 			<img alt="confirm" src="{assets}/checkmark.svg" />
 		</div>
 	{/if}
-	<img class:grayed src="https://avatars.dicebear.com/api/avataaars/{name}.svg" />
+	<img class:grayed alt="avatar" src="https://avatars.dicebear.com/api/avataaars/{name}.svg" />
 	<h2>{name}</h2>
 </div>
 
@@ -39,6 +39,7 @@
 		position: relative;
 
 		&:hover {
+			background-color: #3b3b3b;
 			cursor: pointer;
 		}
 
@@ -54,7 +55,8 @@
 	}
 
 	.grayed {
-		filter: blur(1px) grayscale(1);
+		filter: grayscale(1);
+		background-color: #3b3b3b;
 	}
 
 	.selected {
