@@ -16,13 +16,19 @@
 	}
 </script>
 
-<div class:selected id="characterCard" on:click={handleClick} on:contextmenu={handleRightClick}>
+<div
+	class:selected
+	class:grayed
+	id="characterCard"
+	on:click={handleClick}
+	on:contextmenu={handleRightClick}
+>
 	{#if selected}
 		<div id="selectionCircle">
 			<img alt="confirm" src="{assets}/checkmark.svg" />
 		</div>
 	{/if}
-	<img class:grayed alt="avatar" src="https://avatars.dicebear.com/api/avataaars/{name}.svg" />
+	<img alt="avatar" src="https://avatars.dicebear.com/api/avataaars/{name}.svg" />
 	<h2>{name}</h2>
 </div>
 
@@ -56,7 +62,7 @@
 
 	.grayed {
 		filter: grayscale(1);
-		background-color: #3b3b3b;
+		background-color: #3b3b3b !important;
 	}
 
 	.selected {
