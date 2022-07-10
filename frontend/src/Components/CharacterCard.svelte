@@ -1,18 +1,18 @@
 <script lang="ts">
 	import { assets } from '$app/paths';
 	export let name: string;
+	export let selected = false;
 
 	let grayed = false;
-	let selected = false;
 
 	function handleClick(e: MouseEvent) {
-		console.log('click!');
 		grayed = !grayed;
+		selected = false;
 	}
 
 	function handleRightClick(e: MouseEvent) {
-		e.preventDefault();
 		selected = !selected;
+		grayed = false;
 	}
 </script>
 
@@ -21,7 +21,7 @@
 	class:grayed
 	id="characterCard"
 	on:click={handleClick}
-	on:contextmenu={handleRightClick}
+	on:contextmenu|preventDefault={handleRightClick}
 >
 	{#if selected}
 		<div id="selectionCircle">
