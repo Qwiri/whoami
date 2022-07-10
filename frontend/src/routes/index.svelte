@@ -1,10 +1,16 @@
-<script>
+<script lang="ts">
+	import Chat from '../Components/Chat.svelte';
 	import CharacterDecision from '../Components/CharacterDecision.svelte';
 </script>
 
 <div id="container">
-	<h1>WhoAmI</h1>
-	<CharacterDecision />
+	<div id="nav">
+		<img src="/WAI.svg" alt="wai icon" />
+	</div>
+	<div id="content">
+		<CharacterDecision />
+		<Chat />
+	</div>
 </div>
 
 <style lang="scss">
@@ -13,8 +19,19 @@
 		height: 100vh;
 
 		display: flex;
-		flex-direction: column;
-		justify-content: center;
+		// justify-content: space-between;
 		align-items: center;
+	}
+	#content {
+		display: flex;
+		width: 100%;
+		justify-content: center;
+		gap: 4rem;
+	}
+	#nav {
+		width: 3rem;
+		padding: 1rem;
+		background-color: black;
+		height: 100%;
 	}
 </style>
