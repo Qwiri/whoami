@@ -177,7 +177,10 @@ func main() {
 			validate.Number().Min(0).Max(int64(len(Packs))).As("id"),
 		},
 		Handler: func(event *gobby.Handle) error {
+			fmt.Println("SELECT PACK:", event.Number("id"))
+
 			pack := int(event.Number("id"))
+			fmt.Println(" ->", pack)
 			event.Lobby.Meta.(*Meta).PackIndex = pack
 			event.Lobby.BroadcastForce(gobby.NewBasicMessageWith[int]("SELECTED_PACK_CHANGED", pack))
 			return event.Message.ReplyWith(event.Client, *gobby.NewBasicMessage("SELECT_PACK", pack))
