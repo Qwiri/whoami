@@ -9,6 +9,7 @@ import (
 	"github.com/apex/log"
 	"github.com/gofiber/fiber/v2"
 	"github.com/qwiri/whoami/pkg/meta"
+	"strconv"
 )
 
 const (
@@ -27,6 +28,7 @@ var (
 	ErrLobbyFull         = errors.New("the lobby is full")
 	ErrNotLobby          = errors.New("the game is not in lobby mode")
 	ErrCardOutOfRange    = errors.New("card out of range")
+	ErrPackOutOfRange    = errors.New("pack out of range")
 	ErrPlayerRequirement = errors.New("player requirement not met")
 )
 
@@ -174,16 +176,21 @@ func main() {
 	g.Handle("SELECT_PACK", &gobby.Handler{
 		States: StateLobby,
 		Validation: validate.Schemes{
-			validate.Number().Min(0).Max(int64(len(Packs))).As("id"),
+			validate.String().As("id"),
 		},
 		Handler: func(event *gobby.Handle) error {
-			fmt.Println("SELECT PACK:", event.Number("id"))
-
-			pack := int(event.Number("id"))
-			fmt.Println(" ->", pack)
-			event.Lobby.Meta.(*Meta).PackIndex = pack
-			event.Lobby.BroadcastForce(gobby.NewBasicMessageWith[int]("SELECTED_PACK_CHANGED", pack))
-			return event.Message.ReplyWith(event.Client, *gobby.NewBasicMessage("SELECT_PACK", pack))
+			// convert id string to number
+			packStr := event.String("id")
+			if pack, err := strconv.Atoi(packStr); err != nil {
+				return event.Message.ReplyError(event.Client.Socket, err)
+			} else {
+				if pack < 0 || pack >= len(Packs) {
+					return event.Message.ReplyError(event.Client.Socket, ErrPackOutOfRange)
+				}
+				event.Lobby.Meta.(*Meta).PackIndex = pack
+				event.Lobby.BroadcastForce(gobby.NewBasicMessageWith[int]("SELECTED_PACK_CHANGED", pack))
+				return event.Message.ReplyWith(event.Client, *gobby.NewBasicMessage("SELECT_PACK", pack))
+			}
 		},
 	})
 
