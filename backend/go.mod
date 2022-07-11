@@ -3,7 +3,7 @@ module github.com/qwiri/whoami
 go 1.18
 
 require (
-	github.com/Qwiri/gobby v0.0.0-20220710182805-9a0afb21effe
+	github.com/Qwiri/gobby v0.0.0-20220711141904-a0fdb642b0ce
 	github.com/apex/log v1.9.0
 	github.com/gofiber/fiber/v2 v2.34.1
 )

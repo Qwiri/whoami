@@ -43,6 +43,7 @@ func main() {
 
 	g.MustOn(func(event *gobby.LobbyCreate) {
 		event.Lobby.Meta = new(Meta)
+		event.Lobby.State = StateLobby
 	})
 
 	g.MustOn(func(event *gobby.Join) {
