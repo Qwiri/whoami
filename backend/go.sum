@@ -14,6 +14,8 @@ github.com/Qwiri/gobby v0.0.0-20220711185703-3979b5249b48 h1:MiBqvm2A1XYTF6AcHrH
 github.com/Qwiri/gobby v0.0.0-20220711185703-3979b5249b48/go.mod h1:4i5+3lAx+GbzG3bhtx2jjFw9Z9SVpZtDl8Cb+Gt6DnQ=
 github.com/Qwiri/gobby v0.0.0-20220711190756-c958f3e45d77 h1:pxjEFL0MgEXdZCeBWmrmSK+41g08nZZclqL3W1+BDU8=
 github.com/Qwiri/gobby v0.0.0-20220711190756-c958f3e45d77/go.mod h1:4i5+3lAx+GbzG3bhtx2jjFw9Z9SVpZtDl8Cb+Gt6DnQ=
+github.com/Qwiri/gobby v0.0.0-20220711195941-ab578bf8e826 h1:MTLv7BbUni9v6gnUn6How4gjeQu53pJbAo/yVgkDXGc=
+github.com/Qwiri/gobby v0.0.0-20220711195941-ab578bf8e826/go.mod h1:4i5+3lAx+GbzG3bhtx2jjFw9Z9SVpZtDl8Cb+Gt6DnQ=
 github.com/andybalholm/brotli v1.0.4 h1:V7DdXeJtZscaqfNuAdSRuRFzuiKlHSC/Zh3zl9qY3JY=
 github.com/andybalholm/brotli v1.0.4/go.mod h1:fO7iG3H7G2nSZ7m0zPUDn85XEX2GTukHGRSepvi9Eig=
 github.com/apex/log v1.9.0 h1:FHtw/xuaM8AgmvDDTI9fiwoAL25Sq2cxojnZICUU8l0=
