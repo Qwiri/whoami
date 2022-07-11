@@ -7,15 +7,15 @@ import (
 )
 
 type Card struct {
-	Name   string
-	Avatar string
+	Name   string `json:"name"`
+	Avatar string `json:"avatar"`
 }
 
 type CardPack struct {
-	Name        string
-	Icon        string
-	Description string
-	Avatars     []Card
+	Name        string `json:"name"`
+	Icon        string `json:"icon"`
+	Description string `json:"description"`
+	Avatars     []Card `json:"avatars"`
 }
 
 var Packs []*CardPack

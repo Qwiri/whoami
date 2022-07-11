@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"github.com/Qwiri/gobby/pkg/gobby"
 	"github.com/Qwiri/gobby/pkg/handlers"
 	"github.com/Qwiri/gobby/pkg/validate"
@@ -34,7 +35,10 @@ func main() {
 	log.Infof("Starting backend for whoami %s (%s@%s)",
 		meta.Version, meta.GitCommit, meta.GitBranch)
 	app := fiber.New()
+
 	g := gobby.New(app)
+	g.AppVersion = fmt.Sprintf("%s:%s@%s",
+		meta.Version, meta.GitCommit, meta.GitBranch) // send backend version
 
 	g.HandleAll(gobby.Handlers{
 		"CHAT": handlers.Chat,
@@ -76,7 +80,6 @@ func main() {
 
 	// lifecycle events
 	g.Handle("START", &gobby.Handler{
-		Roles:  gobby.RoleLeader,
 		States: StateLobby | StateWinningScreen,
 		Handler: func(event *gobby.Handle) error {
 			// require 2 players to start
@@ -84,11 +87,11 @@ func main() {
 				return event.Message.ReplyWith(event.Client, *gobby.NewErrorMessage(ErrPlayerRequirement))
 			}
 			// send available card selections
-			meta := event.Lobby.Meta.(*Meta)
-			pack := Packs[meta.PackIndex]
+			m := event.Lobby.Meta.(*Meta)
+			pack := Packs[m.PackIndex]
 			// send available characters
 			event.Lobby.BroadcastForce(gobby.NewBasicMessageWith("AVAILABLE_CHARACTERS",
-				pack.Avatars))
+				pack.Avatars...))
 			event.Lobby.ChangeState(StateSelectCharacter)
 			return nil
 		},
@@ -101,8 +104,8 @@ func main() {
 		},
 		Handler: func(event *gobby.Handle) error {
 			// check if pack is selected
-			meta := event.Lobby.Meta.(*Meta)
-			pack := Packs[meta.PackIndex]
+			m := event.Lobby.Meta.(*Meta)
+			pack := Packs[m.PackIndex]
 
 			charIndex := event.Number("char")
 			if charIndex >= int64(len(pack.Avatars)) {
@@ -110,7 +113,7 @@ func main() {
 			}
 
 			avatar := pack.Avatars[charIndex]
-			meta.Selected[event.Client.Name] = int(charIndex)
+			m.Selected[event.Client.Name] = int(charIndex)
 
 			_ = event.Message.ReplyWith(event.Client, *gobby.NewBasicMessage(
 				"SELECT_CARD", "OK", avatar.Name, avatar.Avatar,
@@ -119,7 +122,7 @@ func main() {
 			// check if all clients selected a card
 			var missing bool
 			for _, c := range event.Lobby.Clients {
-				if _, ok := meta.Selected[c.Name]; !ok {
+				if _, ok := m.Selected[c.Name]; !ok {
 					missing = true
 					break
 				}
@@ -139,13 +142,13 @@ func main() {
 			validate.Number().Min(0).As("char"),
 		},
 		Handler: func(event *gobby.Handle) error {
-			meta := event.Lobby.Meta.(*Meta)
+			m := event.Lobby.Meta.(*Meta)
 
 			// get selection of other player
 			var selected int
 			for _, c := range event.Lobby.Clients {
 				if c.Name != event.Client.Name {
-					selected = meta.Selected[c.Name]
+					selected = m.Selected[c.Name]
 					break
 				}
 			}
@@ -162,7 +165,6 @@ func main() {
 
 	// respond with all available packs
 	g.Handle("PACKS", &gobby.Handler{
-		Roles:  gobby.RoleLeader,
 		States: StateLobby,
 		Handler: func(event *gobby.Handle) error {
 			return event.Message.ReplyWith(event.Client, *gobby.NewBasicMessage("PACKS", Packs))
@@ -170,7 +172,6 @@ func main() {
 	})
 
 	g.Handle("SELECT_PACK", &gobby.Handler{
-		Roles:  gobby.RoleLeader,
 		States: StateLobby,
 		Validation: validate.Schemes{
 			validate.Number().Min(0).Max(int64(len(Packs))).As("id"),
