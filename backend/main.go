@@ -7,6 +7,7 @@ import (
 	"github.com/Qwiri/gobby/pkg/validate"
 	"github.com/apex/log"
 	"github.com/gofiber/fiber/v2"
+	"github.com/qwiri/whoami/pkg/meta"
 )
 
 const (
@@ -24,13 +25,14 @@ type Meta struct {
 var (
 	ErrLobbyFull         = errors.New("the lobby is full")
 	ErrNotLobby          = errors.New("the game is not in lobby mode")
-	ErrPackNotSelected   = errors.New("pack not selected")
 	ErrCardOutOfRange    = errors.New("card out of range")
 	ErrPlayerRequirement = errors.New("player requirement not met")
 )
 
 func main() {
 	log.Infof("Packs: %v", Packs)
+	log.Infof("Starting backend for whoami %s (%s@%s)",
+		meta.Version, meta.GitCommit, meta.GitBranch)
 	app := fiber.New()
 	g := gobby.New(app)
 
@@ -64,6 +66,11 @@ func main() {
 		}); err != nil {
 			return
 		}
+	})
+
+	g.MustOn(func(event *gobby.Leave) {
+		// reset to lobby state if any client disconnects
+		event.Lobby.ChangeState(StateLobby)
 	})
 
 	// lifecycle events
@@ -151,8 +158,6 @@ func main() {
 			return nil
 		},
 	})
-
-	// TODO: LEAVE handler
 
 	// respond with all available packs
 	g.Handle("PACKS", &gobby.Handler{

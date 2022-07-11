@@ -12,8 +12,10 @@ type Card struct {
 }
 
 type CardPack struct {
-	Name    string
-	Avatars []Card
+	Name        string
+	Icon        string
+	Description string
+	Avatars     []Card
 }
 
 var Packs []*CardPack

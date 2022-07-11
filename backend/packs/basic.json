@@ -1,5 +1,7 @@
 {
   "name": "Basic",
+  "icon": "https://avatars.dicebear.com/api/croodles-neutral/gh.svg",
+  "description": "The Original™️",
   "cards": [
     {
       "name": "Amy",
