@@ -1,28 +1,34 @@
 <script lang="ts">
 	import { assets } from '$app/paths';
 	export let name: string;
+	export let selected = false;
 
 	let grayed = false;
-	let selected = false;
 
 	function handleClick(e: MouseEvent) {
-		console.log('click!');
 		grayed = !grayed;
+		selected = false;
 	}
 
 	function handleRightClick(e: MouseEvent) {
-		e.preventDefault();
 		selected = !selected;
+		grayed = false;
 	}
 </script>
 
-<div class:selected id="characterCard" on:click={handleClick} on:contextmenu={handleRightClick}>
+<div
+	class:selected
+	class:grayed
+	id="characterCard"
+	on:click={handleClick}
+	on:contextmenu|preventDefault={handleRightClick}
+>
 	{#if selected}
 		<div id="selectionCircle">
 			<img alt="confirm" src="{assets}/checkmark.svg" />
 		</div>
 	{/if}
-	<img class:grayed src="https://avatars.dicebear.com/api/avataaars/{name}.svg" />
+	<img alt="avatar" src="https://avatars.dicebear.com/api/avataaars/{name}.svg" />
 	<h2>{name}</h2>
 </div>
 
@@ -39,6 +45,7 @@
 		position: relative;
 
 		&:hover {
+			background-color: #3b3b3b;
 			cursor: pointer;
 		}
 
@@ -54,7 +61,8 @@
 	}
 
 	.grayed {
-		filter: blur(1px) grayscale(1);
+		filter: grayscale(1);
+		background-color: #3b3b3b !important;
 	}
 
 	.selected {
