@@ -80,7 +80,7 @@ func main() {
 
 	// lifecycle events
 	g.Handle("START", &gobby.Handler{
-		States: StateLobby | StateWinningScreen,
+		States: StateLobby,
 		Handler: func(event *gobby.Handle) error {
 			// require 2 players to start
 			if len(event.Lobby.Clients) != 2 {
