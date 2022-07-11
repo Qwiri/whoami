@@ -31,10 +31,6 @@ RUN GOOS=linux \
 FROM alpine:3.15
 COPY --from=builder /usr/src/app/backend .
 
-RUN mkdir packs
-COPY --from=builder /usr/src/app/packs packs
-RUN ls -larth
-
 EXPOSE 8081
 
 ENTRYPOINT [ "/backend" ]

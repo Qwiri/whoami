@@ -65,14 +65,6 @@ func main() {
 			event.Cancel()
 			return
 		}
-		// send user list
-		if err := handlers.List.Handler(&gobby.Handle{
-			Lobby:   event.Lobby,
-			Client:  event.Client,
-			Message: gobby.NewBasicMessage("LIST"),
-		}); err != nil {
-			return
-		}
 	})
 
 	g.MustOn(func(event *gobby.Leave) {
