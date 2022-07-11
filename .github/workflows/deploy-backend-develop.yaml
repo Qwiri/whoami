@@ -48,12 +48,12 @@ jobs:
             "gitbranch=${{ steps.vars.outputs.branch }}"
             "gitcommit=${{ steps.vars.outputs.commit }}"
 
-            #- name: Restart Develop Backend
-            #uses: darmiel/yadwh-action@v1
-            #with:
-            #url: 'http://backend.staging.gyf.d2a.io:9830'
-            #name: 'BACKEND_STAGED'
-            #secret: ${{ secrets.STAGED_DEPLOY_SECRET }}
+      - name: Restart Develop Backend
+        uses: darmiel/yadwh-action@v1
+        with:
+          url: 'https://yadwh.sap.lol'
+          name: 'WAI_BACKEND_STAGED'
+          secret: ${{ secrets.YADWH_SECRET_DEVELOP }}
           
       - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
