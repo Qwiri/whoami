@@ -179,7 +179,8 @@ func main() {
 		Handler: func(event *gobby.Handle) error {
 			pack := int(event.Number("id"))
 			event.Lobby.Meta.(*Meta).PackIndex = pack
-			return event.Message.ReplyWith(event.Client, *gobby.NewBasicMessage("PACK", pack))
+			event.Lobby.BroadcastForce(gobby.NewBasicMessageWith[int]("SELECTED_PACK_CHANGED", pack))
+			return event.Message.ReplyWith(event.Client, *gobby.NewBasicMessage("SELECT_PACK", pack))
 		},
 	})
 
