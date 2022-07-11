@@ -1,13 +1,16 @@
 <script lang="ts">
 	import CharacterCard from './CharacterCard.svelte';
 
+	export let onLeftClick: (e: MouseEvent, player: { name: string; selected: boolean }) => void;
+	export let onRightClick: (e: MouseEvent, player: { name: string; selected: boolean }) => void;
+
 	let players = [
 		{ name: 'Luca', selected: false },
 		{ name: 'Tobus', selected: false },
 		{ name: 'Darmiel', selected: false },
 		{ name: 'Jimmy', selected: false },
 		{ name: 'JuJu', selected: false },
-		{ name: 'Bevin', selected: false },
+		{ name: '🅱evin', selected: false },
 		{ name: 'Bernd', selected: false },
 		{ name: 'Janni boi', selected: false },
 		{ name: 'JJ', selected: false },
@@ -33,9 +36,14 @@
 	}
 </script>
 
-<div id="characterDecision" on:contextmenu|capture={removeSelection}>
+<div id="characterDecision">
 	{#each players as player}
-		<CharacterCard bind:selected={player.selected} name={player.name} />
+		<div
+			on:contextmenu|capture={(e) => onRightClick(e, player)}
+			on:click|capture={(e) => onLeftClick(e, player)}
+		>
+			<CharacterCard bind:selected={player.selected} name={player.name} />
+		</div>
 	{/each}
 </div>
 
