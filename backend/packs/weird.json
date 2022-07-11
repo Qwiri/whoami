@@ -2,7 +2,7 @@
   "name": "Tom's Weirde Collection",
   "icon": "https://avatars.dicebear.com/api/micah/gh.svg",
   "description": "Ein TomTom 👐",
-  "cards": [
+  "avatars": [
     {
       "name": "Luca",
       "avatar": "https://avatars.dicebear.com/api/micah/Luca.svg"
