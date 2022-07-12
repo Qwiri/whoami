@@ -8,6 +8,7 @@ import (
 	"github.com/Qwiri/gobby/pkg/validate"
 	"github.com/apex/log"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/qwiri/whoami/pkg/meta"
 	"strconv"
 )
@@ -55,8 +56,8 @@ func (m *Meta) Win(lobby *gobby.Lobby, who *gobby.Client, reason string) {
 
 func (m *Meta) DecreaseLife(who *gobby.Client, many int) (bool, error) {
 	newLives := m.Lives[who.Name] - many
+	m.Lives[who.Name] = newLives
 	if newLives > 0 {
-		m.Lives[who.Name] = newLives
 		return false, gobby.NewBasicMessageWith[int]("LIVES", newLives, DefaultLives).SendTo(who)
 	}
 	return true, nil
@@ -72,6 +73,7 @@ func main() {
 		meta.Version, meta.GitCommit, meta.GitBranch)
 
 	app := fiber.New()
+	app.Use(cors.New())
 
 	g := gobby.New(app)
 	g.AppVersion = fmt.Sprintf("%s:%s@%s",
@@ -82,43 +84,58 @@ func main() {
 		"LIST": handlers.List,
 	})
 
-	g.MustOn(func(event *gobby.LobbyCreate) {
-		// init lobby
-		event.Lobby.Meta = newMeta()
-		event.Lobby.ChangeState(StateLobby)
-	}, func(event *gobby.Leave) {
-		// resetCurrentGame player selection on player leave and change state to lobby
-		event.Lobby.Meta.(*Meta).resetCurrentGame()
-		event.Lobby.ChangeState(StateLobby)
-	}, func(event *gobby.Join) {
-		// do not allow more than 2 players to a game
-		if len(event.Lobby.Clients) >= 2 {
-			_ = gobby.NewErrorMessage(ErrLobbyFull).SendTo(event.Client)
-			event.Cancel()
-			return
-		}
-		// do not allow joining if not in lobby
-		if event.Lobby.State != StateLobby {
-			_ = gobby.NewErrorMessage(ErrNotLobby).SendTo(event.Client)
-			event.Cancel()
-			return
-		}
-	})
+	g.MustOn(
+		// init lobby after a new lobby has been created
+		func(event *gobby.LobbyCreateEvent) {
+			event.Lobby.Meta = newMeta()
+			event.Lobby.ChangeState(StateLobby)
+		},
+		// reset current lobby to lobby mode if any client disconnects
+		func(event *gobby.LeaveEvent) {
+			// resetCurrentGame player selection on player leave and change state to lobby
+			event.Lobby.Meta.(*Meta).resetCurrentGame()
+			event.Lobby.ChangeState(StateLobby)
+		},
+		// check if the lobby can be joined and cancel the join process if not
+		func(event *gobby.PreJoinEvent) {
+			// do not allow more than 2 players to a game
+			if len(event.Lobby.Clients) >= 2 {
+				_ = gobby.NewErrorMessage(ErrLobbyFull).SendTo(event.Client)
+				event.Cancel()
+				return
+			}
+			// do not allow joining if not in lobby
+			if event.Lobby.State != StateLobby {
+				_ = gobby.NewErrorMessage(ErrNotLobby).SendTo(event.Client)
+				event.Cancel()
+				return
+			}
+		},
+		// send some meta to the player after joining a lobby, like
+		// - available pack
+		// - selected pack
+		func(event *gobby.PostJoinEvent) {
+			// send available packs
+			_ = gobby.NewBasicMessageWith[[]*CardPack]("PACKS", Packs).
+				SendTo(event.Client)
 
-	g.MustOn(func(event *gobby.Leave) {
-		// resetCurrentGame to lobby state if any client disconnects
-	})
+			// send selected pack
+			_ = gobby.NewBasicMessageWith[int]("SELECTED_PACK_CHANGED", event.Lobby.Meta.(*Meta).PackIndex).
+				SendTo(event.Client)
+		},
+	)
 
 	// lifecycle events
 	g.Handle("START", &gobby.Handler{
 		States: StateLobby,
 		Handler: func(event *gobby.Handle) error {
-			// require 2 players to start
+			// check that 2 players are in the lobby
 			if len(event.Lobby.Clients) != 2 {
 				return event.Message.ReplyWith(event.Client, *gobby.NewErrorMessage(ErrPlayerRequirement))
 			}
-			// send available card selections
-			m := event.Lobby.Meta.(*Meta).resetCurrentGame()
+
+			m := event.Lobby.Meta.(*Meta)
+			m.resetCurrentGame()
 
 			// send game meta to clients:
 			// lives
