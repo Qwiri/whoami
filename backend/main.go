@@ -46,7 +46,7 @@ func (m *Meta) resetCurrentGame() *Meta {
 
 func (m *Meta) Win(lobby *gobby.Lobby, who *gobby.Client, reason string) {
 	// send win message to all players
-	lobby.BroadcastForce(gobby.NewBasicMessageWith[string]("WINNER", who.Name, reason))
+	lobby.BroadcastForce(gobby.NewBasicMessage("WINNER", who.Name, m.Selected[who.Name], reason))
 	// set state to end screen
 	lobby.ChangeState(StateWinningScreen)
 	// reset game
