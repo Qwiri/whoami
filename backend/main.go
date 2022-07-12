@@ -125,6 +125,7 @@ func main() {
 		},
 		// check if the lobby can be joined and cancel the join process if not
 		func(event *gobby.PreJoinEvent) {
+			log.Infof("PreJoinEvent: %s", event.Client.Name)
 			// do not allow more than 2 players to a game
 			if len(event.Lobby.Clients) >= 2 {
 				_ = gobby.NewErrorMessage(ErrLobbyFull).SendTo(event.Client)
@@ -142,6 +143,7 @@ func main() {
 		// - available pack
 		// - selected pack
 		func(event *gobby.PostJoinEvent) {
+			log.Infof("PostJoinEvent: %s", event.Client.Name)
 			// send available packs
 			_ = gobby.NewBasicMessageWith[[]*CardPack]("PACKS", Packs).
 				SendTo(event.Client)
