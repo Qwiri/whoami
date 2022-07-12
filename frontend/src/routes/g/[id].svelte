@@ -10,17 +10,21 @@
 	import { onMount } from 'svelte';
 	import {
 		cards,
+		currentLives,
 		ingameName,
+		maxLives,
 		messages,
 		packs,
 		selectedCard,
 		selectedPack,
 		users,
-		wrongGuesses,
+		winnerName,
+		winnerID,
 		type Card,
 		type ChatMessage,
 		type Pack
 	} from '../../stores';
+	import WinningScreen from '../../Components/WinningScreen.svelte';
 
 	enum GameState {
 		EnterName,
@@ -34,9 +38,6 @@
 
 	let _ingameName = '';
 	let characterName = '';
-
-	let winner = '';
-	let winnningReason = '';
 
 	let gobby: Gobby;
 
@@ -107,10 +108,18 @@
 				}
 			});
 
+			gobby.handle('LIVES', (msg: Message) => {
+				if (msg.args) {
+					currentLives.set(msg.args[0] as number);
+					maxLives.set(msg.args[1] as number);
+				}
+			});
+
 			gobby.handle('WINNER', (msg: Message) => {
 				if (msg.args) {
-					winner = msg.args[0] as string;
-					winnningReason = msg.args[1] as string;
+					$winnerName = msg.args[0] as string;
+					$winnerID = msg.args[1] as number;
+					// winnningReason = msg.args[1] as string;
 				}
 			});
 		} catch (e) {
@@ -163,16 +172,12 @@
 		gobby.send(ö('SELECT_PACK', index.toString()));
 	}
 	function guess(index: number) {
-		gobby.send(ö('GUESS', index.toString())).then((msg) => {
-			if (msg.args && msg.args[0] === 'wrong') {
-				$wrongGuesses += 1;
-			}
-		});
+		gobby.send(ö('GUESS', index.toString()));
 	}
 </script>
 
 <div id="container">
-	<Navbar ingame={GameState.Ingame === gameStatus} />
+	<Navbar ingame={[GameState.Ingame, GameState.End].includes(gameStatus)} />
 	<div id="content">
 		{#if gameStatus === GameState.Ingame}
 			<CharacterGrid onGuess={guess} />
@@ -197,9 +202,9 @@
 				<div>
 					<h3>In Lobby: <span class="green">{$users.length} / 2</span></h3>
 					<div id="playerVS">
-						<p class="playerCard pc1">{$users[0]}</p>
+						<p class="playerCard pc1">{$users[0] || ' '}</p>
 						<p><b>VS</b></p>
-						<p class="playerCard pc2">{$users[1]}</p>
+						<p class="playerCard pc2">{$users[1] || ' '}</p>
 					</div>
 					<button
 						id="startButton"
@@ -226,10 +231,7 @@
 				<Chat sendMessageCallback={sendChatMessage} />
 			</div>
 		{:else if gameStatus === GameState.End}
-			<div>
-				<h1>The winner is {winner}</h1>
-				<h3>{winnningReason}</h3>
-			</div>
+			<WinningScreen />
 		{/if}
 	</div>
 </div>
@@ -245,6 +247,7 @@
 	#content {
 		display: flex;
 		width: 100%;
+		height: 100%;
 		justify-content: center;
 		gap: 4rem;
 	}
@@ -312,9 +315,16 @@
 		background-image: linear-gradient(to left, #6f6f6f, #4d4d4d);
 		border-radius: 1rem;
 		margin: 0.2rem;
+		p {
+			margin-top: 0;
+		}
+		h1 {
+			margin-bottom: 0;
+		}
 		img {
 			height: 4rem;
 			border-radius: 0.2rem;
+			margin: 0.5rem;
 		}
 	}
 </style>

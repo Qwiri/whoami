@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { selectedCard } from '../stores';
+	import { currentLives, maxLives, selectedCard } from '../stores';
 
 	export let ingame = false;
 	let startTime = Date.now();
@@ -19,10 +19,18 @@
 <div id="nav">
 	<img id="wai" src="/WAI.svg" alt="wai icon" />
 	{#if ingame}
+		<div class="hearts">
+			{#each Array($maxLives - $currentLives) as item}
+				<img src="/broken_heart.png" alt="lost life" />
+			{/each}
+			{#each Array($currentLives) as item}
+				<img src="/heart.png" alt="one life" />
+			{/each}
+		</div>
 		<img alt="avatar" src={$selectedCard?.avatar} />
 		<hr id="hr" />
 		<p id="time">{ingameTime}</p>
-		<img id="leave" alt="leave" src="/leave.svg" />
+		<img on:click={() => (window.location.href = '/')} id="leave" alt="leave" src="/leave.svg" />
 	{/if}
 </div>
 
@@ -36,6 +44,11 @@
 		display: flex;
 		flex-direction: column;
 		justify-content: flex-end;
+	}
+	.hearts {
+		img {
+			width: 3rem;
+		}
 	}
 	#hr {
 		width: 90%;
