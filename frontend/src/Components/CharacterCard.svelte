@@ -65,6 +65,7 @@
 		img {
 			width: 7rem;
 			height: 8rem;
+			object-fit: cover;
 		}
 
 		h2 {
