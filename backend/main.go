@@ -32,6 +32,12 @@ var (
 	ErrPlayerRequirement = errors.New("player requirement not met")
 )
 
+func newMeta() *Meta {
+	return &Meta{
+		Selected: make(map[string]int),
+	}
+}
+
 func main() {
 	log.Infof("Packs: %v", Packs)
 	log.Infof("Starting backend for whoami %s (%s@%s)",
@@ -48,14 +54,15 @@ func main() {
 		"LIST": handlers.List,
 	})
 
+	resetLobby := func(lobby *gobby.Lobby) {
+		lobby.Meta = newMeta()
+		lobby.ChangeState(StateLobby)
+	}
 	g.MustOn(func(event *gobby.LobbyCreate) {
-		event.Lobby.Meta = &Meta{
-			Selected: make(map[string]int),
-		}
-		event.Lobby.State = StateLobby
-	})
-
-	g.MustOn(func(event *gobby.Join) {
+		resetLobby(event.Lobby)
+	}, func(event *gobby.Leave) {
+		resetLobby(event.Lobby)
+	}, func(event *gobby.Join) {
 		// do not allow more than 2 players to a game
 		if len(event.Lobby.Clients) >= 2 {
 			_ = gobby.NewErrorMessage(ErrLobbyFull).SendTo(event.Client)
@@ -72,7 +79,6 @@ func main() {
 
 	g.MustOn(func(event *gobby.Leave) {
 		// reset to lobby state if any client disconnects
-		event.Lobby.ChangeState(StateLobby)
 	})
 
 	// lifecycle events
