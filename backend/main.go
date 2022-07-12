@@ -9,6 +9,7 @@ import (
 	"github.com/apex/log"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/gofiber/fiber/v2/utils"
 	"github.com/qwiri/whoami/pkg/meta"
 	"strconv"
 )
@@ -57,14 +58,23 @@ func (m *Meta) Win(lobby *gobby.Lobby, who *gobby.Client, reason string) {
 func (m *Meta) DecreaseLife(who *gobby.Client, many int) (bool, error) {
 	newLives := m.Lives[who.Name] - many
 	m.Lives[who.Name] = newLives
+
+	// send new live count to player
+	err := gobby.NewBasicMessageWith[int]("LIVES", newLives, DefaultLives).SendTo(who)
 	if newLives > 0 {
-		return false, gobby.NewBasicMessageWith[int]("LIVES", newLives, DefaultLives).SendTo(who)
+		return false, err
 	}
 	return true, nil
 }
 
 func newMeta() *Meta {
 	return new(Meta).resetCurrentGame()
+}
+
+type peekResponse struct {
+	ID      gobby.LobbyID
+	State   gobby.State
+	Clients []string
 }
 
 func main() {
@@ -79,6 +89,23 @@ func main() {
 	g.AppVersion = fmt.Sprintf("%s:%s@%s",
 		meta.Version, meta.GitCommit, meta.GitBranch) // send backend version
 
+	app.Get(g.Prefix+"peek/:lobby_id", func(ctx *fiber.Ctx) error {
+		lobby, ok := g.Lobbies[gobby.LobbyID(utils.CopyString(ctx.Params("lobby_id")))]
+		if !ok {
+			return fiber.NewError(fiber.StatusNotFound, "lobby not found")
+		}
+		var clients = make([]string, 0, len(lobby.Clients))
+		for _, c := range lobby.Clients {
+			clients = append(clients, c.Name)
+		}
+		return ctx.JSON(peekResponse{
+			ID:      lobby.ID,
+			State:   lobby.State,
+			Clients: clients,
+		})
+	})
+
+	// default handlers: CHAT (for in-game chat) and LIST (to list all players in a lobby)
 	g.HandleAll(gobby.Handlers{
 		"CHAT": handlers.Chat,
 		"LIST": handlers.List,
