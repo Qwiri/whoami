@@ -16,8 +16,9 @@ export interface ChatMessage {
 	message: string;
 	user: string;
 }
+
 export const packs: Writable<Pack[]> = writable([]);
-export const selectedPack: Writable<Pack> = writable();
+export const selectedPackIndex: Writable<number> = writable();
 export const cards: Writable<Card[]> = writable([]);
 export const users: Writable<string[]> = writable([]);
 export const messages: Writable<ChatMessage[]> = writable([]);
@@ -28,9 +29,3 @@ export const currentLives: Writable<number> = writable();
 export const maxLives: Writable<number> = writable();
 export const winnerName: Writable<string> = writable('');
 export const winnerID: Writable<number> = writable();
-
-// character
-// packs (leader)
-// leader?
-// selected
-// ws

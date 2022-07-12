@@ -16,15 +16,16 @@
 		messages,
 		packs,
 		selectedCard,
-		selectedPack,
 		users,
 		winnerName,
 		winnerID,
 		type Card,
 		type ChatMessage,
-		type Pack
+		type Pack,
+		selectedPackIndex
 	} from '../../stores';
 	import WinningScreen from '../../Components/WinningScreen.svelte';
+	import LobbyPeek, { type PeekContent } from '../../Components/LobbyPeek.svelte';
 
 	enum GameState {
 		EnterName,
@@ -37,98 +38,105 @@
 	let gameStatus = GameState.EnterName;
 
 	let _ingameName = '';
-	let characterName = '';
 
 	let gobby: Gobby;
 
+	// Peek lobby before joining
+	let peek: undefined | null | PeekContent;
+	const check = async () => {
+		const resp = await fetch(`https://backend.wai.sap.lol/lobby/peek/${$page.params.id}`);
+		if (resp.status === 404) {
+			peek = null; // null = lobby not found
+		} else {
+			peek = (await resp.json()) as PeekContent;
+		}
+	};
+
 	onMount(async () => {
+		check();
+		setInterval(check, 1000);
+
 		try {
 			gobby = new Gobby(`wss://backend.wai.sap.lol/lobby/socket/${$page.params.id}`);
-			const ws = await gobby.connect();
-
-			gobby.handle('SELECTED_PACK_CHANGED', (msg: Message) => {
-				if (msg.args) {
-					selectedPack.set($packs[msg.args[0] as number]);
-				}
-			});
-
-			gobby.handle('PACK', (msg: Message) => {
-				if (msg.args) {
-					selectedPack.set(msg.args[0] as Pack);
-				}
-			});
-
-			gobby.handle('LIST', (msg: Message) => {
-				if (msg.args) {
-					users.set(msg.args as string[]);
-				}
-			});
-
-			gobby.handle('CHAT', (msg: Message) => {
-				if (msg.args) {
-					const newMessage: ChatMessage = {
-						message: msg.args[1] as string,
-						user: msg.args[0] as string
-					};
-					messages.update((old) => {
-						old.unshift(newMessage);
-						return old;
-					});
-				}
-			});
-
-			gobby.handle('STATE_CHANGE', (msg: Message) => {
-				if (msg.args) {
-					switch (msg.args[1] as number) {
-						case 1 << 0:
-							gameStatus = GameState.Lobby;
-							break;
-						case 1 << 1:
-							// select character
-							gameStatus = GameState.ChooseCharacter;
-							break;
-						case 1 << 2:
-							// game halt, ingame
-							gameStatus = GameState.Ingame;
-							break;
-						case 1 << 3:
-							// gewonnen, dieser winning screen
-							gameStatus = GameState.End;
-							break;
-
-						default:
-							break;
-					}
-				}
-			});
-
-			gobby.handle('AVAILABLE_CHARACTERS', (msg: Message) => {
-				if (msg.args) {
-					cards.set(msg.args as Card[]);
-				}
-			});
-
-			gobby.handle('LIVES', (msg: Message) => {
-				if (msg.args) {
-					currentLives.set(msg.args[0] as number);
-					maxLives.set(msg.args[1] as number);
-				}
-			});
-
-			gobby.handle('WINNER', (msg: Message) => {
-				if (msg.args) {
-					$winnerName = msg.args[0] as string;
-					$winnerID = msg.args[1] as number;
-					// winnningReason = msg.args[1] as string;
-				}
-			});
+			await gobby.connect();
 		} catch (e) {
 			console.error(e);
 		}
+
+		// SELECTED_PACK_CHANGED is called whenever the selected pack changes.
+		// {selectedPackIndex: number}
+		gobby.handle('SELECTED_PACK_CHANGED', (msg: Message) => {
+			if (msg.args) {
+				selectedPackIndex.set(msg.args[0] as number);
+			}
+		});
+
+		// LIST returns a list of all users in the lobby.
+		// {user1: string}, {user2: string}, ...
+		gobby.handle('LIST', (msg: Message) => {
+			if (msg.args) {
+				users.set(msg.args as string[]);
+			}
+		});
+
+		// CHAT is called whenever a message is sent in the chat.
+		// {username: string}, {message: string}
+		gobby.handle('CHAT', (msg: Message) => {
+			if (msg.args) {
+				const newMessage: ChatMessage = {
+					message: msg.args[1] as string,
+					user: msg.args[0] as string
+				};
+				messages.update((old) => {
+					old.unshift(newMessage);
+					return old;
+				});
+			}
+		});
+
+		// STATE_CHANGE is called whenever the game state changes.
+		// {state: number}
+		gobby.handle('STATE_CHANGE', (msg: Message) => {
+			const states = [GameState.Lobby, GameState.ChooseCharacter, GameState.Ingame, GameState.End];
+			if (msg.args) {
+				gameStatus = states[Math.log2(msg.args[1] as number)];
+			}
+		});
+
+		// AVAILABLE_CHARACTERS returns a list of all available characters you can choose from.
+		// {character1: Card}, {character2: Card}, ...
+		gobby.handle('AVAILABLE_CHARACTERS', (msg: Message) => {
+			if (msg.args) {
+				cards.set(msg.args as Card[]);
+			}
+		});
+
+		// LIVES returns the current amount of lives you have.
+		// {lives: number}, {maxLives: number}
+		gobby.handle('LIVES', (msg: Message) => {
+			if (msg.args) {
+				currentLives.set(msg.args[0] as number);
+				maxLives.set(msg.args[1] as number);
+			}
+		});
+
+		// WINNER returns the name of the winner and the reason why they won.
+		gobby.handle('WINNER', (msg: Message) => {
+			if (msg.args) {
+				winnerName.set(msg.args[0] as string);
+				winnerID.set(msg.args[1] as number);
+			}
+		});
+
+		gobby.handle('PACKS', (msg: Message) => {
+			if (msg.args) {
+				packs.set(msg.args[0] as Pack[]);
+			}
+		});
 	});
 
-	async function joinWithName(e: KeyboardEvent) {
-		if (e.key === 'Enter') {
+	async function joinWithName(event: KeyboardEvent) {
+		if (event.key === 'Enter') {
 			try {
 				await gobby.join(_ingameName);
 				ingameName.set(_ingameName);
@@ -136,16 +144,11 @@
 				console.error(eeee);
 				return;
 			}
-			gobby.send(ö('PACKS')).then((msg) => {
-				console.log('PACKS');
-				if (msg.args) {
-					packs.set(msg.args[0] as Pack[]);
-				}
-			});
 		}
 	}
-	function chooseCharacter(e: MouseEvent, card: Card, i: number) {
-		console.log('CHOOSE CHARACTER');
+
+	function chooseCharacter(event: MouseEvent, _player: Card, i: number) {
+		event.stopPropagation();
 		gobby.send(ö('SELECT_CHARACTER', i.toString())).then((msg) => {
 			if (msg.args && msg.args[0] === 'OK') {
 				let card: Card = {
@@ -155,13 +158,10 @@
 				selectedCard.set(card);
 			}
 		});
-		e.stopPropagation();
 	}
 
 	function startGame() {
-		if ($users.length >= 2) {
-			gobby.send(ö('START'));
-		}
+		gobby.send(ö('START'));
 	}
 
 	function sendChatMessage(text: string) {
@@ -171,6 +171,7 @@
 	function changePack(index: number) {
 		gobby.send(ö('SELECT_PACK', index.toString()));
 	}
+
 	function guess(index: number) {
 		gobby.send(ö('GUESS', index.toString()));
 	}
@@ -191,6 +192,16 @@
 					type="text"
 					placeholder="Enter name"
 				/>
+				<!-- Peek -->
+				{#if peek !== undefined}
+					<div id="peekContent">
+						{#if peek === null}
+							<h2 class="status unavailable">LOBBY UNAVAILABLE</h2>
+						{:else}
+							<LobbyPeek {peek} />
+						{/if}
+					</div>
+				{/if}
 			</div>
 		{:else if gameStatus === GameState.ChooseCharacter}
 			<div id="content">
@@ -217,7 +228,7 @@
 					{#each $packs as pack, i}
 						<div
 							class="pack"
-							class:selectedPack={pack.name === $selectedPack?.name}
+							class:selectedPack={i == $selectedPackIndex}
 							on:click={() => changePack(i)}
 						>
 							<img src={pack.icon} alt="cover for {pack.name}" />
@@ -326,5 +337,9 @@
 			border-radius: 0.2rem;
 			margin: 0.5rem;
 		}
+	}
+
+	#peekContent {
+		margin-top: 2rem;
 	}
 </style>

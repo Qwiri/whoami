@@ -17,7 +17,9 @@
 </script>
 
 <div id="nav">
-	<img id="wai" src="/WAI.svg" alt="wai icon" />
+	<a href="/">
+		<img id="wai" src="/WAI.svg" alt="wai icon" />
+	</a>
 	{#if ingame}
 		<div class="hearts">
 			{#each Array($maxLives - $currentLives) as item}
@@ -56,7 +58,7 @@
 		background-color: #202020;
 		border: none;
 	}
-	#wai {
+	#wai, a {
 		margin-bottom: auto;
 	}
 	#time {
