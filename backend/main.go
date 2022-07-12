@@ -56,9 +56,9 @@ func (m *Meta) DecreaseLife(who *gobby.Client, many int) (bool, error) {
 	newLives := m.Lives[who.Name] - many
 	if newLives > 0 {
 		m.Lives[who.Name] = newLives
-		return true, gobby.NewBasicMessageWith[int]("LIVES", newLives, DefaultLives).SendTo(who)
+		return false, gobby.NewBasicMessageWith[int]("LIVES", newLives, DefaultLives).SendTo(who)
 	}
-	return false, nil
+	return true, nil
 }
 
 func newMeta() *Meta {
