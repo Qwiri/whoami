@@ -54,14 +54,14 @@ func main() {
 		"LIST": handlers.List,
 	})
 
-	resetLobby := func(lobby *gobby.Lobby) {
-		lobby.Meta = newMeta()
-		lobby.ChangeState(StateLobby)
-	}
 	g.MustOn(func(event *gobby.LobbyCreate) {
-		resetLobby(event.Lobby)
+		// init lobby
+		event.Lobby.Meta = newMeta()
+		event.Lobby.ChangeState(StateLobby)
 	}, func(event *gobby.Leave) {
-		resetLobby(event.Lobby)
+		// reset player selection on player leave and change state to lobby
+		event.Lobby.Meta.(*Meta).Selected = make(map[string]int)
+		event.Lobby.ChangeState(StateLobby)
 	}, func(event *gobby.Join) {
 		// do not allow more than 2 players to a game
 		if len(event.Lobby.Clients) >= 2 {
