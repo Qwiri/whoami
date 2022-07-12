@@ -1,11 +1,9 @@
 <script lang="ts">
-	import { time_ranges_to_array } from 'svelte/internal';
+	import { selectedCard } from '../stores';
 
 	export let ingame = false;
 	let startTime = Date.now();
 	let ingameTime = '00:00';
-
-	export let name: string;
 
 	setInterval(() => {
 		let seconds = Math.floor((Date.now() - startTime) / 1000);
@@ -21,7 +19,7 @@
 <div id="nav">
 	<img id="wai" src="/WAI.svg" alt="wai icon" />
 	{#if ingame}
-		<img alt="avatar" src="https://avatars.dicebear.com/api/avataaars/{name}.svg" />
+		<img alt="avatar" src={$selectedCard?.avatar} />
 		<hr id="hr" />
 		<p id="time">{ingameTime}</p>
 		<img id="leave" alt="leave" src="/leave.svg" />

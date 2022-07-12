@@ -8,6 +8,15 @@
 			window.location.href = `/g/${lobbyCode}`;
 		}
 	}
+	async function createGame() {
+		const res = await fetch('https://backend.wai.sap.lol/lobby/create');
+		console.log('res');
+		console.log(res);
+		const json = await res.json();
+		console.log('JSON');
+		console.log(json);
+		window.location.href = `/g/${json.ID}`;
+	}
 </script>
 
 <div id="root" class="horizontalContent">
@@ -19,7 +28,7 @@
 		</div>
 		<div id="mainContent" class="horizontalContent justifyAround alignCenter">
 			<div id="createLobby">
-				<button>CREATE GAME</button>
+				<button on:click={createGame}>CREATE GAME</button>
 				<p>or</p>
 				<input
 					bind:value={lobbyCode}

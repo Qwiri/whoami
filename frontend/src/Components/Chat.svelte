@@ -1,15 +1,16 @@
 <script lang="ts">
 	import ChatMessage from './ChatMessage.svelte';
 
-	let messages = [{ me: false, text: 'hey, nice to meet you! :)' }];
+	import { messages, ingameName } from '../stores';
+
+	// let messages = [{ me: false, text: 'hey, nice to meet you! :)' }];
+	export let sendMessageCallback: (text: string) => void;
 
 	let text: string;
 
 	function sendMessage(e: KeyboardEvent) {
 		if (e.key === 'Enter' && text) {
-			// TODO: ws logic
-
-			messages = [{ me: true, text: text }, ...messages];
+			sendMessageCallback(text);
 			text = '';
 		}
 	}
@@ -17,8 +18,8 @@
 
 <div id="chatContainer">
 	<div id="messageContainer">
-		{#each messages as message}
-			<ChatMessage me={message.me} text={message.text} />
+		{#each $messages as message}
+			<ChatMessage me={message.user === $ingameName} text={message.message} />
 		{/each}
 	</div>
 	<hr id="hr" />

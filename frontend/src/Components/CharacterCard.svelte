@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { assets } from '$app/paths';
-	export let name: string;
-	export let selected = false;
+	import { tentativeCard, type Card } from '../stores';
+	export let card: Card;
+	$: selected = $tentativeCard?.name === card.name;
 
 	let grayed = false;
 
@@ -13,6 +14,7 @@
 	function handleRightClick(e: MouseEvent) {
 		selected = !selected;
 		grayed = false;
+		tentativeCard.set(selected ? card : ({} as Card));
 	}
 </script>
 
@@ -28,8 +30,8 @@
 			<img alt="confirm" src="{assets}/checkmark.svg" />
 		</div>
 	{/if}
-	<img alt="avatar" src="https://avatars.dicebear.com/api/avataaars/{name}.svg" />
-	<h2>{name}</h2>
+	<img alt="avatar" src={card.avatar} />
+	<h2>{card.name}</h2>
 </div>
 
 <style lang="scss">
