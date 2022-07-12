@@ -36,6 +36,7 @@ func main() {
 	log.Infof("Packs: %v", Packs)
 	log.Infof("Starting backend for whoami %s (%s@%s)",
 		meta.Version, meta.GitCommit, meta.GitBranch)
+
 	app := fiber.New()
 
 	g := gobby.New(app)
@@ -48,7 +49,9 @@ func main() {
 	})
 
 	g.MustOn(func(event *gobby.LobbyCreate) {
-		event.Lobby.Meta = new(Meta)
+		event.Lobby.Meta = &Meta{
+			Selected: make(map[string]int),
+		}
 		event.Lobby.State = StateLobby
 	})
 
@@ -94,23 +97,27 @@ func main() {
 	g.Handle("SELECT_CHARACTER", &gobby.Handler{
 		States: StateSelectCharacter,
 		Validation: validate.Schemes{
-			validate.Number().Min(0).As("char"),
+			validate.String().As("char"),
 		},
 		Handler: func(event *gobby.Handle) error {
+			char, err := strconv.Atoi(event.String("char"))
+			if err != nil {
+				return event.Message.ReplyError(event.Client.Socket, err)
+			}
+
 			// check if pack is selected
 			m := event.Lobby.Meta.(*Meta)
 			pack := Packs[m.PackIndex]
 
-			charIndex := event.Number("char")
-			if charIndex >= int64(len(pack.Avatars)) {
+			if char < 0 || char >= len(pack.Avatars) {
 				return event.Message.ReplyWith(event.Client, *gobby.NewErrorMessage(ErrCardOutOfRange))
 			}
 
-			avatar := pack.Avatars[charIndex]
-			m.Selected[event.Client.Name] = int(charIndex)
+			avatar := pack.Avatars[char]
+			m.Selected[event.Client.Name] = char
 
 			_ = event.Message.ReplyWith(event.Client, *gobby.NewBasicMessage(
-				"SELECT_CARD", "OK", avatar.Name, avatar.Avatar,
+				"SELECT_CHARACTER", "OK", avatar.Name, avatar.Avatar,
 			))
 
 			// check if all clients selected a card
