@@ -19,9 +19,14 @@ const (
 	StateWinningScreen
 )
 
+const (
+	DefaultLives = 3
+)
+
 type Meta struct {
 	PackIndex int
 	Selected  map[string]int // Client Name -> Selected
+	Lives     map[string]int // Client Name -> Lives (3)
 }
 
 var (
@@ -32,10 +37,32 @@ var (
 	ErrPlayerRequirement = errors.New("player requirement not met")
 )
 
-func newMeta() *Meta {
-	return &Meta{
-		Selected: make(map[string]int),
+func (m *Meta) resetCurrentGame() *Meta {
+	m.Selected = make(map[string]int)
+	m.Lives = make(map[string]int)
+	return m
+}
+
+func (m *Meta) Win(lobby *gobby.Lobby, who *gobby.Client, reason string) {
+	// send win message to all players
+	lobby.BroadcastForce(gobby.NewBasicMessageWith[string]("WINNER", who.Name, reason))
+	// set state to end screen
+	lobby.ChangeState(StateWinningScreen)
+	// reset game
+	m.resetCurrentGame()
+}
+
+func (m *Meta) DecreaseLife(who *gobby.Client, many int) (bool, error) {
+	newLives := m.Lives[who.Name] - many
+	if newLives > 0 {
+		m.Lives[who.Name] = newLives
+		return true, gobby.NewBasicMessageWith[int]("LIVES", newLives, DefaultLives).SendTo(who)
 	}
+	return false, nil
+}
+
+func newMeta() *Meta {
+	return new(Meta).resetCurrentGame()
 }
 
 func main() {
@@ -59,8 +86,8 @@ func main() {
 		event.Lobby.Meta = newMeta()
 		event.Lobby.ChangeState(StateLobby)
 	}, func(event *gobby.Leave) {
-		// reset player selection on player leave and change state to lobby
-		event.Lobby.Meta.(*Meta).Selected = make(map[string]int)
+		// resetCurrentGame player selection on player leave and change state to lobby
+		event.Lobby.Meta.(*Meta).resetCurrentGame()
 		event.Lobby.ChangeState(StateLobby)
 	}, func(event *gobby.Join) {
 		// do not allow more than 2 players to a game
@@ -78,7 +105,7 @@ func main() {
 	})
 
 	g.MustOn(func(event *gobby.Leave) {
-		// reset to lobby state if any client disconnects
+		// resetCurrentGame to lobby state if any client disconnects
 	})
 
 	// lifecycle events
@@ -90,11 +117,19 @@ func main() {
 				return event.Message.ReplyWith(event.Client, *gobby.NewErrorMessage(ErrPlayerRequirement))
 			}
 			// send available card selections
-			m := event.Lobby.Meta.(*Meta)
+			m := event.Lobby.Meta.(*Meta).resetCurrentGame()
+
+			// send game meta to clients:
+			// lives
+			for _, c := range event.Lobby.Clients {
+				m.Lives[c.Name] = DefaultLives
+				_, _ = m.DecreaseLife(c, 0) // send reset lives
+			}
+			// selectable characters
 			pack := Packs[m.PackIndex]
-			// send available characters
-			event.Lobby.BroadcastForce(gobby.NewBasicMessageWith("AVAILABLE_CHARACTERS",
-				pack.Avatars...))
+			event.Lobby.BroadcastForce(gobby.NewBasicMessageWith("AVAILABLE_CHARACTERS", pack.Avatars...))
+
+			// change state to select character
 			event.Lobby.ChangeState(StateSelectCharacter)
 			return nil
 		},
@@ -157,24 +192,34 @@ func main() {
 			m := event.Lobby.Meta.(*Meta)
 
 			// get selection of other player
-			var selected int
+			var other *gobby.Client
 			for _, c := range event.Lobby.Clients {
 				if c.Name != event.Client.Name {
-					selected = m.Selected[c.Name]
+					other = c
 					break
 				}
 			}
 
-			if selected != char {
-				return event.Message.ReplyWith(event.Client, *gobby.NewBasicMessage("GUESS", "wrong"))
+			if m.Selected[other.Name] != char {
+				err = event.Message.ReplyWith(event.Client, *gobby.NewBasicMessage("GUESS", "wrong"))
+				if died, err := m.DecreaseLife(event.Client, 1); err != nil {
+					return err
+				} else if died {
+					m.Win(event.Lobby, other, "LIVES")
+				}
+				return err
 			}
 
-			// reset selected char
-			m.Selected = make(map[string]int)
+			err = event.Message.ReplyWith(event.Client, *gobby.NewBasicMessage("GUESS", "correct"))
+
+			// current player wins because the player guessed right
+			m.Win(event.Lobby, event.Client, "GUESS")
+
+			// resetCurrentGame selected char
+			m.resetCurrentGame()
 
 			// broadcast round end
-			event.Lobby.BroadcastForce(gobby.NewBasicMessageWith[string]("WINNER", event.Client.Name, "GUESS"))
-			return event.Message.ReplyWith(event.Client, *gobby.NewBasicMessage("GUESS", "correct"))
+			return err
 		},
 	})
 
