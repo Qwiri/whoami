@@ -35,6 +35,7 @@ var (
 	ErrCardOutOfRange    = errors.New("card out of range")
 	ErrPackOutOfRange    = errors.New("pack out of range")
 	ErrPlayerRequirement = errors.New("player requirement not met")
+	ErrAlreadyLobby      = errors.New("already in lobby")
 )
 
 func (m *Meta) resetCurrentGame() *Meta {
@@ -132,6 +133,17 @@ func main() {
 			// change state to select character
 			event.Lobby.ChangeState(StateSelectCharacter)
 			return nil
+		},
+	})
+
+	g.Handle("CANCEL", &gobby.Handler{
+		Handler: func(event *gobby.Handle) error {
+			if event.Lobby.State == StateLobby {
+				return event.Message.ReplyError(event.Client.Socket, ErrAlreadyLobby)
+			}
+			event.Lobby.Meta.(*Meta).resetCurrentGame()
+			event.Lobby.ChangeState(StateLobby)
+			return event.Message.ReplyWith(event.Client, *gobby.NewBasicMessage("CANCEL", "ok"))
 		},
 	})
 
