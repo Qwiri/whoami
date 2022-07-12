@@ -2,18 +2,21 @@
 	import { currentLives, maxLives, selectedCard } from '../stores';
 
 	export let ingame = false;
-	let startTime = Date.now();
+	let startTime: number;
 	let ingameTime = '00:00';
 
-	setInterval(() => {
-		let seconds = Math.floor((Date.now() - startTime) / 1000);
-		let minutes = Math.floor(seconds / 60);
-		seconds = Math.floor(seconds % 60);
+	$: if (ingame) {
+		startTime = Date.now();
+		setInterval(() => {
+			let seconds = Math.floor((Date.now() - startTime) / 1000);
+			let minutes = Math.floor(seconds / 60);
+			seconds = Math.floor(seconds % 60);
 
-		ingameTime = `${minutes.toLocaleString('en-US', {
-			minimumIntegerDigits: 2
-		})}:${seconds.toLocaleString('en-US', { minimumIntegerDigits: 2 })}`;
-	}, 1000);
+			ingameTime = `${minutes.toLocaleString('en-US', {
+				minimumIntegerDigits: 2
+			})}:${seconds.toLocaleString('en-US', { minimumIntegerDigits: 2 })}`;
+		}, 1000);
+	}
 </script>
 
 <div id="nav">

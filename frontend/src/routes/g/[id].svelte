@@ -209,35 +209,37 @@
 				<CharacterGrid onLeftClick={chooseCharacter} onRightClick={(e) => e.stopPropagation()} />
 			</div>
 		{:else if gameStatus === GameState.Lobby}
-			<div id="playerVS">
-				<div>
-					<h3>In Lobby: <span class="green">{$users.length} / 2</span></h3>
-					<div id="playerVS">
-						<p class="playerCard pc1">{$users[0] || ' '}</p>
-						<p><b>VS</b></p>
-						<p class="playerCard pc2">{$users[1] || ' '}</p>
-					</div>
-					<button
-						id="startButton"
-						class={$users.length >= 2 ? 'startPlayable' : 'gray'}
-						on:click={startGame}>Start</button
-					>
-				</div>
-				<div>
-					<h1>Select a pack</h1>
-					{#each $packs as pack, i}
-						<div
-							class="pack"
-							class:selectedPack={i == $selectedPackIndex}
-							on:click={() => changePack(i)}
-						>
-							<img src={pack.icon} alt="cover for {pack.name}" />
-							<div>
-								<h3>{pack.name}</h3>
-								<p>{pack.description}</p>
-							</div>
+			<div class="ewe">
+				<div id="playerVS">
+					<div>
+						<h3>In Lobby: <span class="green">{$users.length} / 2</span></h3>
+						<div id="playerVS">
+							<p class="playerCard pc1">{$users[0] || ' '}</p>
+							<p><b>VS</b></p>
+							<p class="playerCard pc2">{$users[1] || ' '}</p>
 						</div>
-					{/each}
+						<button
+							id="startButton"
+							class={$users.length >= 2 ? 'startPlayable' : 'gray'}
+							on:click={startGame}>Start</button
+						>
+					</div>
+					<div>
+						<h1>Select a pack</h1>
+						{#each $packs as pack, i}
+							<div
+								class="pack"
+								class:selectedPack={i === $selectedPackIndex}
+								on:click={() => changePack(i)}
+							>
+								<img src={pack.icon} alt="cover for {pack.name}" />
+								<div>
+									<h3>{pack.name}</h3>
+									<p>{pack.description}</p>
+								</div>
+							</div>
+						{/each}
+					</div>
 				</div>
 				<Chat sendMessageCallback={sendChatMessage} />
 			</div>
@@ -254,6 +256,11 @@
 
 		display: flex;
 		align-items: center;
+	}
+	.ewe {
+		display: flex;
+		width: 100%;
+		justify-content: space-around;
 	}
 	#content {
 		display: flex;
@@ -293,8 +300,10 @@
 		}
 	}
 	#startButton {
-		padding: 0.5rem;
-		border-radius: 0.2rem;
+		padding: 0.5rem 1rem;
+		font-size: 1.2rem;
+		border-radius: 0.5rem;
+		border: none;
 
 		p {
 			margin: 0;
@@ -326,6 +335,10 @@
 		background-image: linear-gradient(to left, #6f6f6f, #4d4d4d);
 		border-radius: 1rem;
 		margin: 0.2rem;
+
+		&:hover {
+			cursor: pointer;
+		}
 		p {
 			margin-top: 0;
 		}
