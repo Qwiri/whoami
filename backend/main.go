@@ -146,9 +146,14 @@ func main() {
 	g.Handle("GUESS", &gobby.Handler{
 		States: StateGame,
 		Validation: validate.Schemes{
-			validate.Number().Min(0).As("char"),
+			validate.String().As("char"),
 		},
 		Handler: func(event *gobby.Handle) error {
+			char, err := strconv.Atoi(event.String("char"))
+			if err != nil {
+				return event.Message.ReplyError(event.Client.Socket, err)
+			}
+
 			m := event.Lobby.Meta.(*Meta)
 
 			// get selection of other player
@@ -160,13 +165,16 @@ func main() {
 				}
 			}
 
-			if selected != int(event.Number("char")) {
-				// TODO: wrong guess
-			} else {
-				// TODO: right guess
+			if selected != char {
+				return event.Message.ReplyWith(event.Client, *gobby.NewBasicMessage("GUESS", "wrong"))
 			}
 
-			return nil
+			// reset selected char
+			m.Selected = make(map[string]int)
+
+			// broadcast round end
+			event.Lobby.BroadcastForce(gobby.NewBasicMessageWith[string]("WINNER", event.Client.Name, "GUESS"))
+			return event.Message.ReplyWith(event.Client, *gobby.NewBasicMessage("GUESS", "correct"))
 		},
 	})
 
