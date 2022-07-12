@@ -5,10 +5,7 @@
 
 	export let onLeftClick: undefined | ((e: MouseEvent, player: Card, i: number) => void);
 	export let onRightClick: undefined | ((e: MouseEvent, player: Card, i: number) => void);
-
-	// function removeSelection() {
-	// 	cards.filter((p) => p.selected).forEach((p) => (p.selected = false));
-	// }
+	export let onGuess: undefined | ((i: number) => void);
 </script>
 
 <div id="characterDecision">
@@ -25,7 +22,7 @@
 				}
 			}}
 		>
-			<CharacterCard {card} />
+			<CharacterCard {card} confirmCallback={() => onGuess && onGuess(i)} />
 		</div>
 	{/each}
 </div>

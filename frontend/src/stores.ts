@@ -24,6 +24,7 @@ export const messages: Writable<ChatMessage[]> = writable([]);
 export const selectedCard: Writable<Card> = writable();
 export const tentativeCard: Writable<Card> = writable();
 export const ingameName: Writable<string> = writable();
+export const wrongGuesses: Writable<number> = writable(0);
 
 // character
 // packs (leader)

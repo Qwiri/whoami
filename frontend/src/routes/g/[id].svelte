@@ -16,6 +16,7 @@
 		selectedCard,
 		selectedPack,
 		users,
+		wrongGuesses,
 		type Card,
 		type ChatMessage,
 		type Pack
@@ -33,6 +34,9 @@
 
 	let _ingameName = '';
 	let characterName = '';
+
+	let winner = '';
+	let winnningReason = '';
 
 	let gobby: Gobby;
 
@@ -103,13 +107,10 @@
 				}
 			});
 
-			gobby.handle('SELECT_CHARACTER', (msg: Message) => {
+			gobby.handle('WINNER', (msg: Message) => {
 				if (msg.args) {
-					let card: Card = {
-						name: msg.args[0] as string,
-						avatar: msg.args[1] as string
-					};
-					selectedCard.set(card);
+					winner = msg.args[0] as string;
+					winnningReason = msg.args[1] as string;
 				}
 			});
 		} catch (e) {
@@ -136,8 +137,15 @@
 	}
 	function chooseCharacter(e: MouseEvent, card: Card, i: number) {
 		console.log('CHOOSE CHARACTER');
-		gobby.send(ö('SELECT_CHARACTER', i.toString()));
-		// gameStatus = GameState.Lobby;
+		gobby.send(ö('SELECT_CHARACTER', i.toString())).then((msg) => {
+			if (msg.args && msg.args[0] === 'OK') {
+				let card: Card = {
+					name: msg.args[1] as string,
+					avatar: msg.args[2] as string
+				};
+				selectedCard.set(card);
+			}
+		});
 		e.stopPropagation();
 	}
 
@@ -154,13 +162,20 @@
 	function changePack(index: number) {
 		gobby.send(ö('SELECT_PACK', index.toString()));
 	}
+	function guess(index: number) {
+		gobby.send(ö('GUESS', index.toString())).then((msg) => {
+			if (msg.args && msg.args[0] === 'wrong') {
+				$wrongGuesses += 1;
+			}
+		});
+	}
 </script>
 
 <div id="container">
 	<Navbar ingame={GameState.Ingame === gameStatus} />
 	<div id="content">
 		{#if gameStatus === GameState.Ingame}
-			<CharacterGrid />
+			<CharacterGrid onGuess={guess} />
 			<Chat sendMessageCallback={sendChatMessage} />
 		{:else if gameStatus === GameState.EnterName}
 			<div id="lobbyContent">
@@ -208,6 +223,12 @@
 						</div>
 					{/each}
 				</div>
+				<Chat sendMessageCallback={sendChatMessage} />
+			</div>
+		{:else if gameStatus === GameState.End}
+			<div>
+				<h1>The winner is {winner}</h1>
+				<h3>{winnningReason}</h3>
 			</div>
 		{/if}
 	</div>
@@ -293,6 +314,7 @@
 		margin: 0.2rem;
 		img {
 			height: 4rem;
+			border-radius: 0.2rem;
 		}
 	}
 </style>
