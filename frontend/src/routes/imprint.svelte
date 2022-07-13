@@ -1,6 +1,12 @@
 <div id="content">
 	<h2>
 		<strong>Impressum</strong>
+	</h2>
+	<div class="netlify">
+		<p>Project sponsored by</p>
+		<img src="/netlify.svg" alt="netlify logo" />
+	</div>
+	<h2>
 		<p>Angaben gemäß §5 TMG:</p>
 	</h2>
 	<br />
@@ -76,7 +82,23 @@
 </div>
 
 <style lang="scss">
-    #content {
-        padding: 4rem;
-    }
+	#content {
+		padding: 4rem;
+	}
+	img {
+		height: 1.5rem;
+	}
+	.netlify {
+		background-color: #325d61;
+		padding: 1rem;
+		border-radius: 0.4rem;
+		display: flex;
+		align-items: center;
+		color: white;
+		gap: 1rem;
+
+		p {
+			margin: 0;
+		}
+	}
 </style>
