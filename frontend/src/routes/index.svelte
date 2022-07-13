@@ -38,28 +38,26 @@
 				/>
 			</div>
 			<div>
-				<svg id="separator"
-					viewBox="0 0 2 136"
-					fill="none"
-					xmlns="http://www.w3.org/2000/svg"
-				>
+				<svg id="separator" viewBox="0 0 2 136" fill="none" xmlns="http://www.w3.org/2000/svg">
 					<path d="M1 0L1.00001 136" stroke="#C0C0C0" stroke-width="2" />
 				</svg>
 			</div>
 			<div id="howtoplay">
 				<h3>HOW TO PLAY</h3>
 				<p>
-					<span class="green">whoami</span> is a two-player board game where players each guess the identity of the other
-					chosen character
+					<span class="green">whoami</span> is a two-player board game where players each guess the identity
+					of the other chosen character
 				</p>
 				<ol>
 					<li>Select character</li>
 					<li>
-						Ask <span class="green">yes</span> or <span class="green">no</span> questions about the other character. You can mark characters as "invalid"
-						by <span class="blue">left-clicking</span>
+						Ask <span class="green">yes</span> or <span class="green">no</span> questions about the
+						other character. You can mark characters as "invalid" by
+						<span class="blue">left-clicking</span>
 					</li>
 					<li>
-						If you think you know the answer, <span class="blue">right-click</span> on the character and confirm the selection
+						If you think you know the answer, <span class="blue">right-click</span> on the character
+						and confirm the selection
 					</li>
 					<li>The first player to select the other's character wins</li>
 				</ol>
@@ -89,6 +87,12 @@
 	#mainContent {
 		height: 100%;
 		align-items: center;
+
+		flex-wrap: wrap;
+
+		* {
+			flex-basis: 400px;
+		}
 	}
 	.justifyAround {
 		justify-content: space-around;
@@ -104,10 +108,10 @@
 		flex-direction: column;
 	}
 	.green {
-		color: #65D46E;
+		color: #65d46e;
 	}
 	.blue {
-		color: #49BEFF;
+		color: #49beff;
 	}
 	.light {
 		font-weight: 200;
