@@ -87,12 +87,6 @@
 	#mainContent {
 		height: 100%;
 		align-items: center;
-
-		flex-wrap: wrap;
-
-		* {
-			flex-basis: 400px;
-		}
 	}
 	.justifyAround {
 		justify-content: space-around;
