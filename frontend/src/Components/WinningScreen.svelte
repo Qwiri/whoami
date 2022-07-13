@@ -361,6 +361,8 @@
 		border-radius: 0.5rem;
 		border: none;
 		margin-top: 1rem;
+		color: black;
+		font-weight: bold;
 		cursor: pointer;
 	}
 
