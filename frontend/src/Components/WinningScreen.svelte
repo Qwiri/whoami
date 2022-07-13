@@ -345,7 +345,7 @@
 		/>
 	</div>
 	<div>
-		<img src={winnerCard.avatar} alt="character of {$winnerName}" />
+		<img class="winnerCard" src={winnerCard.avatar} alt="character of {$winnerName}" />
 	</div>
 	<div class="text">
 		<h1><span class="green">{$winnerName === $ingameName ? 'You' : $winnerName}</span> won</h1>
@@ -367,6 +367,12 @@
 	#tsparticles {
 		position: absolute;
 		z-index: -1;
+	}
+	.winnerCard {
+		width: 25vw;
+		height: 25vw;
+		object-fit: cover;
+		border-radius: 0.5rem;
 	}
 	.content {
 		position: relative;
