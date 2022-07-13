@@ -1,3 +1,4 @@
+import type { Gobby } from 'gobby-ts';
 import { writable, type Writable } from 'svelte/store';
 
 export interface Card {
@@ -29,3 +30,4 @@ export const currentLives: Writable<number> = writable();
 export const maxLives: Writable<number> = writable();
 export const winnerName: Writable<string> = writable('');
 export const winnerID: Writable<number> = writable();
+export const gobby: Writable<Gobby> = writable();

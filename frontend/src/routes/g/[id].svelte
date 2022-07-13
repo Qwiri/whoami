@@ -22,7 +22,8 @@
 		type Card,
 		type ChatMessage,
 		type Pack,
-		selectedPackIndex
+		selectedPackIndex,
+gobby
 	} from '../../stores';
 	import WinningScreen from '../../Components/WinningScreen.svelte';
 	import LobbyPeek, { type PeekContent } from '../../Components/LobbyPeek.svelte';
@@ -38,8 +39,6 @@
 	let gameStatus = GameState.EnterName;
 
 	let _ingameName = '';
-
-	let gobby: Gobby;
 
 	// Peek lobby before joining
 	let peek: undefined | null | PeekContent;
@@ -57,15 +56,15 @@
 		setInterval(check, 1000);
 
 		try {
-			gobby = new Gobby(`wss://backend.wai.sap.lol/lobby/socket/${$page.params.id}`);
-			await gobby.connect();
+			gobby.set(new Gobby(`wss://backend.wai.sap.lol/lobby/socket/${$page.params.id}`));
+			await $gobby.connect();
 		} catch (e) {
 			console.error(e);
 		}
 
 		// SELECTED_PACK_CHANGED is called whenever the selected pack changes.
 		// {selectedPackIndex: number}
-		gobby.handle('SELECTED_PACK_CHANGED', (msg: Message) => {
+		$gobby.handle('SELECTED_PACK_CHANGED', (msg: Message) => {
 			if (msg.args) {
 				selectedPackIndex.set(msg.args[0] as number);
 			}
@@ -73,7 +72,7 @@
 
 		// LIST returns a list of all users in the lobby.
 		// {user1: string}, {user2: string}, ...
-		gobby.handle('LIST', (msg: Message) => {
+		$gobby.handle('LIST', (msg: Message) => {
 			if (msg.args) {
 				users.set(msg.args as string[]);
 			}
@@ -81,7 +80,7 @@
 
 		// CHAT is called whenever a message is sent in the chat.
 		// {username: string}, {message: string}
-		gobby.handle('CHAT', (msg: Message) => {
+		$gobby.handle('CHAT', (msg: Message) => {
 			if (msg.args) {
 				const newMessage: ChatMessage = {
 					message: msg.args[1] as string,
@@ -96,7 +95,7 @@
 
 		// STATE_CHANGE is called whenever the game state changes.
 		// {state: number}
-		gobby.handle('STATE_CHANGE', (msg: Message) => {
+		$gobby.handle('STATE_CHANGE', (msg: Message) => {
 			const states = [GameState.Lobby, GameState.ChooseCharacter, GameState.Ingame, GameState.End];
 			if (msg.args) {
 				gameStatus = states[Math.log2(msg.args[1] as number)];
@@ -105,7 +104,7 @@
 
 		// AVAILABLE_CHARACTERS returns a list of all available characters you can choose from.
 		// {character1: Card}, {character2: Card}, ...
-		gobby.handle('AVAILABLE_CHARACTERS', (msg: Message) => {
+		$gobby.handle('AVAILABLE_CHARACTERS', (msg: Message) => {
 			if (msg.args) {
 				cards.set(msg.args as Card[]);
 			}
@@ -113,7 +112,7 @@
 
 		// LIVES returns the current amount of lives you have.
 		// {lives: number}, {maxLives: number}
-		gobby.handle('LIVES', (msg: Message) => {
+		$gobby.handle('LIVES', (msg: Message) => {
 			if (msg.args) {
 				currentLives.set(msg.args[0] as number);
 				maxLives.set(msg.args[1] as number);
@@ -121,14 +120,14 @@
 		});
 
 		// WINNER returns the name of the winner and the reason why they won.
-		gobby.handle('WINNER', (msg: Message) => {
+		$gobby.handle('WINNER', (msg: Message) => {
 			if (msg.args) {
 				winnerName.set(msg.args[0] as string);
 				winnerID.set(msg.args[1] as number);
 			}
 		});
 
-		gobby.handle('PACKS', (msg: Message) => {
+		$gobby.handle('PACKS', (msg: Message) => {
 			if (msg.args) {
 				packs.set(msg.args[0] as Pack[]);
 			}
@@ -138,7 +137,7 @@
 	async function joinWithName(event: KeyboardEvent) {
 		if (event.key === 'Enter') {
 			try {
-				await gobby.join(_ingameName);
+				await $gobby.join(_ingameName);
 				ingameName.set(_ingameName);
 			} catch (eeee) {
 				console.error(eeee);
@@ -149,7 +148,7 @@
 
 	function chooseCharacter(event: MouseEvent, _player: Card, i: number) {
 		event.stopPropagation();
-		gobby.send(ö('SELECT_CHARACTER', i.toString())).then((msg) => {
+		$gobby.send(ö('SELECT_CHARACTER', i.toString())).then((msg) => {
 			if (msg.args && msg.args[0] === 'OK') {
 				let card: Card = {
 					name: msg.args[1] as string,
@@ -161,19 +160,19 @@
 	}
 
 	function startGame() {
-		gobby.send(ö('START'));
+		$gobby.send(ö('START'));
 	}
 
 	function sendChatMessage(text: string) {
-		gobby.send(ö('CHAT', text));
+		$gobby.send(ö('CHAT', text));
 	}
 
 	function changePack(index: number) {
-		gobby.send(ö('SELECT_PACK', index.toString()));
+		$gobby.send(ö('SELECT_PACK', index.toString()));
 	}
 
 	function guess(index: number) {
-		gobby.send(ö('GUESS', index.toString()));
+		$gobby.send(ö('GUESS', index.toString()));
 	}
 </script>
 

@@ -1,7 +1,8 @@
 <script lang="ts">
-	import { winnerName, winnerID, ingameName, cards } from '../stores';
+	import { winnerName, winnerID, ingameName, cards, gobby } from '../stores';
 	import Particles from 'svelte-particles';
 	import { loadFull } from 'tsparticles';
+	import { ö } from 'gobby-ts';
 
 	let particlesConfig = {
 		emitters: [
@@ -349,10 +350,20 @@
 	<div class="text">
 		<h1><span class="green">{$winnerName === $ingameName ? 'You' : $winnerName}</span> won</h1>
 		<p>as {winnerCard.name}</p>
+		<button id="cancel" on:click={() => $gobby.send(ö('CANCEL'))}>Back to Lobby</button>
 	</div>
 </div>
 
 <style lang="scss">
+	#cancel {
+		padding: 0.5rem 1rem;
+		font-size: 1.2rem;
+		border-radius: 0.5rem;
+		border: none;
+		margin-top: 1rem;
+		cursor: pointer;
+	}
+
 	#tsparticles {
 		position: absolute;
 		z-index: -1;
@@ -365,7 +376,7 @@
 		display: flex;
 		// justify-content: space-around;
 
-		background-image: linear-gradient(to top, #6CD475, #d4ae6500);
+		background-image: linear-gradient(to top, #6cd475, #d4ae6500);
 		background-size: 100% 50%;
 		background-position: 0 100%;
 		background-repeat: no-repeat;
