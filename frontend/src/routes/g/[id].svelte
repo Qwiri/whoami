@@ -222,6 +222,9 @@ gobby
 							class={$users.length >= 2 ? 'startPlayable' : 'gray'}
 							on:click={startGame}>Start</button
 						>
+						{#if $users.length < 2}
+							<p class="players-required">2 players are required to start the game.</p>
+						{/if}
 					</div>
 					<div>
 						<h1>Select a pack</h1>
@@ -256,6 +259,11 @@ gobby
 		display: flex;
 		align-items: center;
 	}
+
+	.players-required {
+		color: red;
+	}
+
 	.ewe {
 		display: flex;
 		width: 100%;
