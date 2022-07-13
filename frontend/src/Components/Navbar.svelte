@@ -37,6 +37,7 @@
 		<p id="time">{ingameTime}</p>
 		<img on:click={() => (window.location.href = '/')} id="leave" alt="leave" src="/leave.svg" />
 	{/if}
+	<a id="imprint" href="/imprint">Imprint</a>
 </div>
 
 <style lang="scss">
@@ -50,6 +51,11 @@
 		flex-direction: column;
 		justify-content: flex-end;
 	}
+	#imprint {
+		margin-bottom: 1rem;
+		margin-top: 1rem;
+		text-decoration: none;
+	}
 	.hearts {
 		img {
 			width: 3rem;
@@ -61,7 +67,8 @@
 		background-color: #202020;
 		border: none;
 	}
-	#wai, a {
+	#wai,
+	a {
 		margin-bottom: auto;
 	}
 	#time {
