@@ -10,16 +10,23 @@
 	import { onMount } from 'svelte';
 	import {
 		cards,
+		currentLives,
 		ingameName,
+		maxLives,
 		messages,
 		packs,
 		selectedCard,
-		selectedPack,
 		users,
+		winnerName,
+		winnerID,
 		type Card,
 		type ChatMessage,
-		type Pack
+		type Pack,
+		selectedPackIndex,
+		gobby
 	} from '../../stores';
+	import WinningScreen from '../../Components/WinningScreen.svelte';
+	import LobbyPeek, { type PeekContent } from '../../Components/LobbyPeek.svelte';
 
 	enum GameState {
 		EnterName,
@@ -32,135 +39,151 @@
 	let gameStatus = GameState.EnterName;
 
 	let _ingameName = '';
-	let characterName = '';
 
-	let gobby: Gobby;
+	// Peek lobby before joining
+	let peek: undefined | null | PeekContent;
+	const check = async () => {
+		const resp = await fetch(`https://backend.wai.sap.lol/lobby/peek/${$page.params.id}`);
+		if (resp.status === 404) {
+			peek = null; // null = lobby not found
+		} else {
+			peek = (await resp.json()) as PeekContent;
+		}
+	};
 
 	onMount(async () => {
+		check();
+		setInterval(check, 1000);
+
 		try {
-			gobby = new Gobby(`wss://backend.wai.sap.lol/lobby/socket/${$page.params.id}`);
-			const ws = await gobby.connect();
-
-			gobby.handle('SELECTED_PACK_CHANGED', (msg: Message) => {
-				if (msg.args) {
-					selectedPack.set($packs[msg.args[0] as number]);
-				}
-			});
-
-			gobby.handle('PACK', (msg: Message) => {
-				if (msg.args) {
-					selectedPack.set(msg.args[0] as Pack);
-				}
-			});
-
-			gobby.handle('LIST', (msg: Message) => {
-				if (msg.args) {
-					users.set(msg.args as string[]);
-				}
-			});
-
-			gobby.handle('CHAT', (msg: Message) => {
-				if (msg.args) {
-					const newMessage: ChatMessage = {
-						message: msg.args[1] as string,
-						user: msg.args[0] as string
-					};
-					messages.update((old) => {
-						old.unshift(newMessage);
-						return old;
-					});
-				}
-			});
-
-			gobby.handle('STATE_CHANGE', (msg: Message) => {
-				if (msg.args) {
-					switch (msg.args[1] as number) {
-						case 1 << 0:
-							gameStatus = GameState.Lobby;
-							break;
-						case 1 << 1:
-							// select character
-							gameStatus = GameState.ChooseCharacter;
-							break;
-						case 1 << 2:
-							// game halt, ingame
-							gameStatus = GameState.Ingame;
-							break;
-						case 1 << 3:
-							// gewonnen, dieser winning screen
-							gameStatus = GameState.End;
-							break;
-
-						default:
-							break;
-					}
-				}
-			});
-
-			gobby.handle('AVAILABLE_CHARACTERS', (msg: Message) => {
-				if (msg.args) {
-					cards.set(msg.args as Card[]);
-				}
-			});
-
-			gobby.handle('SELECT_CHARACTER', (msg: Message) => {
-				if (msg.args) {
-					let card: Card = {
-						name: msg.args[0] as string,
-						avatar: msg.args[1] as string
-					};
-					selectedCard.set(card);
-				}
-			});
+			gobby.set(new Gobby(`wss://backend.wai.sap.lol/lobby/socket/${$page.params.id}`));
+			await $gobby.connect();
 		} catch (e) {
 			console.error(e);
 		}
+
+		// SELECTED_PACK_CHANGED is called whenever the selected pack changes.
+		// {selectedPackIndex: number}
+		$gobby.handle('SELECTED_PACK_CHANGED', (msg: Message) => {
+			if (msg.args) {
+				selectedPackIndex.set(msg.args[0] as number);
+			}
+		});
+
+		// LIST returns a list of all users in the lobby.
+		// {user1: string}, {user2: string}, ...
+		$gobby.handle('LIST', (msg: Message) => {
+			if (msg.args) {
+				users.set(msg.args as string[]);
+			}
+		});
+
+		// CHAT is called whenever a message is sent in the chat.
+		// {username: string}, {message: string}
+		$gobby.handle('CHAT', (msg: Message) => {
+			if (msg.args) {
+				const newMessage: ChatMessage = {
+					message: msg.args[1] as string,
+					user: msg.args[0] as string
+				};
+				messages.update((old) => {
+					old.unshift(newMessage);
+					return old;
+				});
+			}
+		});
+
+		// STATE_CHANGE is called whenever the game state changes.
+		// {state: number}
+		$gobby.handle('STATE_CHANGE', (msg: Message) => {
+			const states = [GameState.Lobby, GameState.ChooseCharacter, GameState.Ingame, GameState.End];
+			if (msg.args) {
+				gameStatus = states[Math.log2(msg.args[1] as number)];
+				if (gameStatus == GameState.ChooseCharacter) {
+					$selectedCard = {} as Card;
+				}
+			}
+		});
+
+		// AVAILABLE_CHARACTERS returns a list of all available characters you can choose from.
+		// {character1: Card}, {character2: Card}, ...
+		$gobby.handle('AVAILABLE_CHARACTERS', (msg: Message) => {
+			if (msg.args) {
+				cards.set(msg.args as Card[]);
+			}
+		});
+
+		// LIVES returns the current amount of lives you have.
+		// {lives: number}, {maxLives: number}
+		$gobby.handle('LIVES', (msg: Message) => {
+			if (msg.args) {
+				currentLives.set(msg.args[0] as number);
+				maxLives.set(msg.args[1] as number);
+			}
+		});
+
+		// WINNER returns the name of the winner and the reason why they won.
+		$gobby.handle('WINNER', (msg: Message) => {
+			if (msg.args) {
+				winnerName.set(msg.args[0] as string);
+				winnerID.set(msg.args[1] as number);
+			}
+		});
+
+		$gobby.handle('PACKS', (msg: Message) => {
+			if (msg.args) {
+				packs.set(msg.args[0] as Pack[]);
+			}
+		});
 	});
 
-	async function joinWithName(e: KeyboardEvent) {
-		if (e.key === 'Enter') {
+	async function joinWithName(event: KeyboardEvent) {
+		if (event.key === 'Enter') {
 			try {
-				await gobby.join(_ingameName);
+				await $gobby.join(_ingameName);
 				ingameName.set(_ingameName);
 			} catch (eeee) {
 				console.error(eeee);
 				return;
 			}
-			gobby.send(ö('PACKS')).then((msg) => {
-				console.log('PACKS');
-				if (msg.args) {
-					packs.set(msg.args[0] as Pack[]);
-				}
-			});
 		}
 	}
-	function chooseCharacter(e: MouseEvent, card: Card, i: number) {
-		console.log('CHOOSE CHARACTER');
-		gobby.send(ö('SELECT_CHARACTER', i.toString()));
-		// gameStatus = GameState.Lobby;
-		e.stopPropagation();
+
+	function chooseCharacter(event: MouseEvent, _player: Card, i: number) {
+		event.stopPropagation();
+		$gobby.send(ö('SELECT_CHARACTER', i.toString())).then((msg) => {
+			if (msg.args && msg.args[0] === 'OK') {
+				let card: Card = {
+					name: msg.args[1] as string,
+					avatar: msg.args[2] as string
+				};
+				selectedCard.set(card);
+			}
+		});
 	}
 
 	function startGame() {
-		if ($users.length >= 2) {
-			gobby.send(ö('START'));
-		}
+		$gobby.send(ö('START'));
 	}
 
 	function sendChatMessage(text: string) {
-		gobby.send(ö('CHAT', text));
+		$gobby.send(ö('CHAT', text));
 	}
 
 	function changePack(index: number) {
-		gobby.send(ö('SELECT_PACK', index.toString()));
+		$gobby.send(ö('SELECT_PACK', index.toString()));
+	}
+
+	function guess(index: number) {
+		$gobby.send(ö('GUESS', index.toString()));
 	}
 </script>
 
 <div id="container">
-	<Navbar ingame={GameState.Ingame === gameStatus} />
+	<Navbar ingame={[GameState.Ingame, GameState.End].includes(gameStatus)} />
 	<div id="content">
 		{#if gameStatus === GameState.Ingame}
-			<CharacterGrid />
+			<CharacterGrid onGuess={guess} />
 			<Chat sendMessageCallback={sendChatMessage} />
 		{:else if gameStatus === GameState.EnterName}
 			<div id="lobbyContent">
@@ -171,44 +194,61 @@
 					type="text"
 					placeholder="Enter name"
 				/>
+				<!-- Peek -->
+				{#if peek !== undefined}
+					<div id="peekContent">
+						{#if peek === null}
+							<h2 class="status unavailable">LOBBY UNAVAILABLE</h2>
+						{:else}
+							<LobbyPeek {peek} />
+						{/if}
+					</div>
+				{/if}
 			</div>
 		{:else if gameStatus === GameState.ChooseCharacter}
 			<div id="content">
-				<h2>choose your character</h2>
 				<CharacterGrid onLeftClick={chooseCharacter} onRightClick={(e) => e.stopPropagation()} />
 			</div>
 		{:else if gameStatus === GameState.Lobby}
-			<div id="playerVS">
-				<div>
-					<h3>In Lobby: <span class="green">{$users.length} / 2</span></h3>
-					<div id="playerVS">
-						<p class="playerCard pc1">{$users[0]}</p>
-						<p><b>VS</b></p>
-						<p class="playerCard pc2">{$users[1]}</p>
-					</div>
-					<button
-						id="startButton"
-						class={$users.length >= 2 ? 'startPlayable' : 'gray'}
-						on:click={startGame}>Start</button
-					>
-				</div>
-				<div>
-					<h1>Select a pack</h1>
-					{#each $packs as pack, i}
-						<div
-							class="pack"
-							class:selectedPack={pack.name === $selectedPack?.name}
-							on:click={() => changePack(i)}
-						>
-							<img src={pack.icon} alt="cover for {pack.name}" />
-							<div>
-								<h3>{pack.name}</h3>
-								<p>{pack.description}</p>
-							</div>
+			<div class="ewe">
+				<div id="playerVS">
+					<div>
+						<h3>In Lobby: <span class="green">{$users.length} / 2</span></h3>
+						<div id="playerVS">
+							<p class="playerCard pc1">{$users[0] || ' '}</p>
+							<p><b>VS</b></p>
+							<p class="playerCard pc2">{$users[1] || ' '}</p>
 						</div>
-					{/each}
+						<button
+							id="startButton"
+							class={$users.length >= 2 ? 'startPlayable' : 'gray'}
+							on:click={startGame}>Start</button
+						>
+						{#if $users.length < 2}
+							<p class="danger">⚠️ 2 players required to start.</p>
+						{/if}
+					</div>
+					<div>
+						<h1>Select a pack</h1>
+						{#each $packs as pack, i}
+							<div
+								class="pack"
+								class:selectedPack={i === $selectedPackIndex}
+								on:click={() => changePack(i)}
+							>
+								<img src={pack.icon} alt="cover for {pack.name}" />
+								<div>
+									<h3 class="pack-name">{pack.name}</h3>
+									<p>{pack.description}</p>
+								</div>
+							</div>
+						{/each}
+					</div>
 				</div>
+				<Chat sendMessageCallback={sendChatMessage} />
 			</div>
+		{:else if gameStatus === GameState.End}
+			<WinningScreen />
 		{/if}
 	</div>
 </div>
@@ -221,12 +261,30 @@
 		display: flex;
 		align-items: center;
 	}
+
+	.players-required {
+		color: red;
+	}
+
+	.ewe {
+		display: flex;
+		width: 100%;
+		justify-content: space-around;
+	}
 	#content {
 		display: flex;
 		width: 100%;
+		height: 100%;
 		justify-content: center;
 		gap: 4rem;
 	}
+
+	.danger {
+		background-color: #ff6f6f;
+		padding: 0.7rem;
+		border-radius: 0.3rem;
+	}
+
 	#lobbyContent {
 		display: flex;
 		flex-direction: column;
@@ -258,12 +316,10 @@
 		}
 	}
 	#startButton {
-		padding: 0.5rem;
-		border-radius: 0.2rem;
-
-		p {
-			margin: 0;
-		}
+		padding: 0.5rem 1rem;
+		font-size: 1.2rem;
+		border-radius: 0.5rem;
+		border: none;
 	}
 	input {
 		background-color: #1e1e1e;
@@ -291,8 +347,26 @@
 		background-image: linear-gradient(to left, #6f6f6f, #4d4d4d);
 		border-radius: 1rem;
 		margin: 0.2rem;
+		margin-bottom: 1rem;
+
+		&:hover {
+			cursor: pointer;
+		}
+		p {
+			margin-top: 0;
+		}
+
+		h3 {
+			margin-bottom: 0;
+		}
 		img {
 			height: 4rem;
+			border-radius: 0.2rem;
+			margin: 0.5rem;
 		}
+	}
+
+	#peekContent {
+		margin-top: 2rem;
 	}
 </style>

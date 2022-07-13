@@ -3,7 +3,6 @@
 
 	import { messages, ingameName } from '../stores';
 
-	// let messages = [{ me: false, text: 'hey, nice to meet you! :)' }];
 	export let sendMessageCallback: (text: string) => void;
 
 	let text: string;
@@ -66,6 +65,7 @@
 		display: flex;
 		flex-direction: column;
 		justify-content: flex-end;
+		align-self: stretch;
 	}
 	#hr {
 		border: none;

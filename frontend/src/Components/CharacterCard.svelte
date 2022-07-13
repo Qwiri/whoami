@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { assets } from '$app/paths';
-	import { tentativeCard, type Card } from '../stores';
+	import { selectedCard, tentativeCard, type Card } from '../stores';
 	export let card: Card;
+	export let confirmCallback: () => void;
 	$: selected = $tentativeCard?.name === card.name;
 
 	let grayed = false;
@@ -16,6 +17,12 @@
 		grayed = false;
 		tentativeCard.set(selected ? card : ({} as Card));
 	}
+	function confirmGuess(e: MouseEvent) {
+		confirmCallback();
+
+		tentativeCard.set({} as Card);
+		e.stopPropagation();
+	}
 </script>
 
 <div
@@ -25,8 +32,11 @@
 	on:click={handleClick}
 	on:contextmenu|preventDefault={handleRightClick}
 >
+	{#if $selectedCard?.name === card.name}
+		<p id="you">YOU</p>
+	{/if}
 	{#if selected}
-		<div id="selectionCircle">
+		<div on:click={confirmGuess} id="selectionCircle">
 			<img alt="confirm" src="{assets}/checkmark.svg" />
 		</div>
 	{/if}
@@ -36,6 +46,7 @@
 
 <style lang="scss">
 	#characterCard {
+		position: relative;
 		display: flex;
 		flex-direction: column;
 		justify-content: center;
@@ -54,12 +65,23 @@
 		img {
 			width: 7rem;
 			height: 8rem;
+			object-fit: cover;
 		}
 
 		h2 {
 			margin: 0;
 			font-family: 'Inter', sans-serif;
 		}
+	}
+	#you {
+		background-color: #65d46e;
+		color: white;
+		font-weight: bold;
+		position: absolute;
+		padding: 0.2rem 0.5rem;
+		border-radius: 0.2rem;
+		top: 0;
+		left: -10px;
 	}
 
 	.grayed {
