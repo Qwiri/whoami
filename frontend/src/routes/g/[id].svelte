@@ -99,6 +99,9 @@
 			const states = [GameState.Lobby, GameState.ChooseCharacter, GameState.Ingame, GameState.End];
 			if (msg.args) {
 				gameStatus = states[Math.log2(msg.args[1] as number)];
+				if (gameStatus == GameState.ChooseCharacter) {
+					$selectedCard = {} as Card;
+				}
 			}
 		});
 
