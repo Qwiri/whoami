@@ -236,7 +236,7 @@ gobby
 							>
 								<img src={pack.icon} alt="cover for {pack.name}" />
 								<div>
-									<h3>{pack.name}</h3>
+									<h3 class="pack-name">{pack.name}</h3>
 									<p>{pack.description}</p>
 								</div>
 							</div>
@@ -252,6 +252,7 @@ gobby
 </div>
 
 <style lang="scss">
+
 	#container {
 		width: 100%;
 		height: 100vh;
@@ -311,10 +312,6 @@ gobby
 		font-size: 1.2rem;
 		border-radius: 0.5rem;
 		border: none;
-
-		p {
-			margin: 0;
-		}
 	}
 	input {
 		background-color: #1e1e1e;
@@ -342,6 +339,7 @@ gobby
 		background-image: linear-gradient(to left, #6f6f6f, #4d4d4d);
 		border-radius: 1rem;
 		margin: 0.2rem;
+		margin-bottom: 1rem;
 
 		&:hover {
 			cursor: pointer;
@@ -349,7 +347,8 @@ gobby
 		p {
 			margin-top: 0;
 		}
-		h1 {
+
+		h3 {
 			margin-bottom: 0;
 		}
 		img {
