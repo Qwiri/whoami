@@ -23,7 +23,7 @@
 		type ChatMessage,
 		type Pack,
 		selectedPackIndex,
-gobby
+		gobby
 	} from '../../stores';
 	import WinningScreen from '../../Components/WinningScreen.svelte';
 	import LobbyPeek, { type PeekContent } from '../../Components/LobbyPeek.svelte';
@@ -223,7 +223,7 @@ gobby
 							on:click={startGame}>Start</button
 						>
 						{#if $users.length < 2}
-							<p class="players-required">2 players are required to start the game.</p>
+							<p class="danger">⚠️ 2 players required to start.</p>
 						{/if}
 					</div>
 					<div>
@@ -252,7 +252,6 @@ gobby
 </div>
 
 <style lang="scss">
-
 	#container {
 		width: 100%;
 		height: 100vh;
@@ -277,6 +276,13 @@ gobby
 		justify-content: center;
 		gap: 4rem;
 	}
+
+	.danger {
+		background-color: #ff6f6f;
+		padding: 0.7rem;
+		border-radius: 0.3rem;
+	}
+
 	#lobbyContent {
 		display: flex;
 		flex-direction: column;
