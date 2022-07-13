@@ -35,7 +35,7 @@
 		justify-items: center;
 		align-items: center;
 
-		gap: 1rem;
+		gap: 0.5rem;
 		direction: rtl;
 	}
 </style>

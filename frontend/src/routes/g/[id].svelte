@@ -207,7 +207,6 @@
 			</div>
 		{:else if gameStatus === GameState.ChooseCharacter}
 			<div id="content">
-				<h2>choose your character</h2>
 				<CharacterGrid onLeftClick={chooseCharacter} onRightClick={(e) => e.stopPropagation()} />
 			</div>
 		{:else if gameStatus === GameState.Lobby}
