@@ -365,7 +365,7 @@
 		display: flex;
 		// justify-content: space-around;
 
-		background-image: linear-gradient(to top, #d4916c, #d4ae6500);
+		background-image: linear-gradient(to top, #6CD475, #d4ae6500);
 		background-size: 100% 50%;
 		background-position: 0 100%;
 		background-repeat: no-repeat;
