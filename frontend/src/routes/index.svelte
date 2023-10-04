@@ -9,7 +9,7 @@
 		}
 	}
 	async function createGame() {
-		const res = await fetch('https://backend.wai.sap.lol/lobby/create');
+		const res = await fetch('https://backend.wai.d2a.io/lobby/create');
 		console.log('res');
 		console.log(res);
 		const json = await res.json();

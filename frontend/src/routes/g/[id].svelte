@@ -43,7 +43,7 @@
 	// Peek lobby before joining
 	let peek: undefined | null | PeekContent;
 	const check = async () => {
-		const resp = await fetch(`https://backend.wai.sap.lol/lobby/peek/${$page.params.id}`);
+		const resp = await fetch(`https://backend.wai.d2a.io/lobby/peek/${$page.params.id}`);
 		if (resp.status === 404) {
 			peek = null; // null = lobby not found
 		} else {
@@ -56,7 +56,7 @@
 		setInterval(check, 1000);
 
 		try {
-			gobby.set(new Gobby(`wss://backend.wai.sap.lol/lobby/socket/${$page.params.id}`));
+			gobby.set(new Gobby(`wss://backend.wai.d2a.io/lobby/socket/${$page.params.id}`));
 			await $gobby.connect();
 		} catch (e) {
 			console.error(e);
